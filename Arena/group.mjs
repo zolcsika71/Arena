@@ -1,113 +1,212 @@
-'use strict'
+'use strict';
 
-import Sorting from '/user/utils/sorting'
-import Cache from '/user/modules/Cache.mjs';
+import Sorting from '/user/utils/sorting';
+import Cache from './Cache.mjs';
+import RoomPosition from './roomPosition.mjs';
+import Arena from './getArena.mjs';
 
 class Group {
-    constructor(name) {
-        // TODO numberOfMembers and members type as parameter
-        this.name = name
-        this.leader = null
-        this._members = []
-        this.numberOfMembers = 4
-    }
+	constructor(name, collection) {
+		this.name = name;
+		this.leader = null;
+		this._members = [];
+		this.collection = collection;
+		this.targetDefinition = null;
+		this.goalDefinition = null;
+		this.alertRange = null;
+		this.optimalSpread = 2;
+	}
 
-    get full() {
-        return this.members.length === this.numberOfMembers
-    }
+	get members() {
+		if (!Cache.has(`members-${this.name}`)) {
+			for (const creep of this._members) {
+				if (creep.isDead) {
+					this.delete(creep);
+				}
+			}
 
-    get members() {
-        if (!Cache.has(`members-${this.name}`)) {
-            for (const creep of this._members) {
-                if (creep.isDead) {
-                    this.delete(creep)
-                }
-            }
+			Cache.add(`members-${this.name}`);
+		}
 
-            Cache.add(`members-${this.name}`)
-        }
+		return this._members;
+	}
 
-        return this._members
-    }
+	get wounded() {
+		return this.members
+		.filter(i => i.isWounded)
+		.sort(Sorting.byHits());
+	}
 
-    get wounded() {
-        return this.members
-            .filter(i => i.isWounded)
-            .sort(Sorting.byHits())
-    }
+	get isSpreadTooHigh() {
+		return this.spread >= this.optimalSpread + 1;
+	}
 
-    add(creep) {
-        this._members.push(creep)
-        creep.group = this
+	get isSpreadOk() {
+		return this.spread <= this.optimalSpread;
+	}
 
-        if (!this.leader) {
-            this.leader = creep
-            console.log('leader', this.leader)
-        }
-    }
+	get spread() {
+		const leader = this.leader;
+		const sorted = this.members.sort(Sorting.byRangeTo(leader, Sorting.DESC));
+		return leader.getRangeTo(sorted[0]);
+	}
 
-    delete(creep) {
-        const index = this._members.indexOf(creep)
+	full(role) {
+		let groupHas = _.filter(this.members,
+			member => member.role === role).length;
+		return groupHas === this.collection.members[role.toLowerCase()];
+	}
 
-        if (index != -1) {
-            this._members.splice(index, 1)
-        }
+	add(creep) {
+		if (this.full(creep.role))
+			return false;
+		this._members.push(creep);
+		creep.group = this;
 
-        creep.group = null
+		// console.log(`group: ${this.name} creep: ${creep.id}`)
 
-        if (this.leader === creep) {
-            this.leader = this._members[0]
-            console.log('leader', this.leader)
-        }
-    }
+		if (!this.leader && creep.role === this.collection.leader) {
+			this.leader = creep;
+			// console.log('leader: ', this.leader)
+		}
+		return true;
+	}
 
-    update() {
-        const members = this.members
+	delete(creep) {
+		const index = this._members.indexOf(creep);
 
-        if (members.length === 0) return
+		if (index !== -1)
+			this._members.splice(index, 1);
 
-        const leader = this.leader
-        const target = this.targetDefinition
-        const goal = this.goalDefinition
-        const alertRange = this.alertRange
-        const isSpreadTooHigh = this.isSpreadTooHigh
 
-        for (const creep of members) {
-            creep.alertRange = alertRange
-            creep.target = target[creep.role.toString()]
+		creep.group = null;
 
-            if (creep.target) {
-                // TODO: is this needed? why?
-                creep.goal = creep.target
-            } else if (isSpreadTooHigh) {
-                if (!creep.inRangeTo(leader, 2)) {
-                    creep.goal = leader
-                } else {
-                    creep.goal = creep
-                }
-            } else {
-                creep.goal = goal[creep.role.toString()]
-            }
+		if (this.leader === creep) {
 
-            creep.update()
-        }
-    }
+			this.leader = _.filter(this._members,
+				member => member.role === 'Ranged'
+					|| member.role === 'Melee')[0];
 
-    get isSpreadTooHigh() {
-        return this.spread > 8
-    }
+			if (!this.leader && this._members[0])
+				this.leader = this._members[0];
 
-    get spread() {
-        const leader = this.leader
-        const sorted = this.members.sort(Sorting.byRangeTo(leader, Sorting.DESC))
-        const range = leader.getRangeTo(sorted[0])
+			if (this.leader)
+				console.log(`${this.name} new leader`, this.leader.role);
+			else {
+				console.log(`Last creep died in ${this.name}`);
+				this.leader = null;
+			}
+		}
+	}
 
-        return range
-    }
+	update() {
+		const members = this.members;
 
-    positionReached(position) {
-        return this.members.some(i => i.standsOn(position))
-    }
+		if (members.length === 0)
+			return;
+
+
+		const leader = this.leader;
+		const target = this.targetDefinition;
+		const goal = this.goalDefinition;
+		const alertRange = this.alertRange;
+		const isSpreadTooHigh = this.isSpreadTooHigh;
+
+		for (const creep of members) {
+			creep.alertRange = alertRange;
+			creep.target = target[creep.role.toString()];
+
+			if (isSpreadTooHigh) {
+				if (!creep.inRangeTo(leader, 2))
+					this.keepFormation()
+				else
+					creep.goal = creep;
+			} else
+				creep.goal = goal[creep.role.toString()];
+
+			creep.update();
+		}
+	}
+
+	occupiedByCreep(position) {
+		for (const creep of Arena.creeps) {
+			if (creep.standsOn(position) || (creep.my && creep.goal === position))
+				return true;
+		}
+		return false;
+	}
+
+	keepFormation(creep) {
+		const leader = this.leader;
+		// const members = this.members;
+
+		let formationPositions = [
+				{
+					role: 'Melee',
+					position: {
+						x: leader.x - 1,
+						y: leader.y,
+					},
+
+				},
+				{
+					role: 'Ranged',
+					position: {
+						x: leader.x - 1,
+						y: leader.y,
+					},
+				},
+				{
+					role: 'Healer_1',
+					position: {
+						x: leader.x - 1,
+						y: leader.y - 1,
+					},
+				},
+				{
+					role: 'Healer_2',
+					position: {
+						x: leader.x,
+						y: leader.y - 1,
+					},
+				},
+			];
+
+
+
+		if (creep === leader)
+			return;
+		// else {
+		// 	for (const member of members) {
+		// 		memberPositions.push(new RoomPosition(member.role, {x: member.x, y: member.y}));
+		// 	}
+		// }
+
+
+		for (const formationPosition of formationPositions) {
+			if ((formationPosition.role === 'Healer_1' || formationPositions.role === 'Healer_2')
+				&& creep.role === 'Healer') {
+				if (!this.occupiedByCreep(formationPosition.position))
+					creep.goal = formationPosition;
+
+			} else if (formationPosition.role === 'Melee' && creep.role === 'Melee') {
+				if (!this.occupiedByCreep(formationPosition.position))
+					creep.goal = formationPosition;
+
+			} else if (formationPosition.role === 'Ranged' && creep.role === 'Ranged') {
+				if (!this.occupiedByCreep(formationPosition.position))
+					creep.goal = formationPosition;
+			}
+		}
+	}
+
+	positionReached(position) {
+		let standsOn = this.members.some(i => i.standsOn(position));
+
+		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
+
+		return standsOn && this.isSpreadOk;
+	}
 }
 
-export default Group
+export default Group;

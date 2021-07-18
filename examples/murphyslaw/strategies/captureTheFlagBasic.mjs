@@ -151,7 +151,7 @@ class CaptureTheFlagBasic {
         const alertRange = this.alertRange(group)
         const enemies = Arena.enemyCreeps
             .filter(i => i.inRangeTo(position, alertRange))
-            .sort((a, b) => a.hits == b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits)
+            .sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits)
 
         if (enemies.length === 0) return null
 

@@ -3,13 +3,20 @@
 import {getObjectsByPrototype} from '/game/utils';
 import {Flag} from '/arena';
 
-import Arena from '/user/arenas/arena';
-import CaptureTheFlagBasic from '/user/strategies/CTF_basic.mjs';
-import CaptureTheFlagAdvanced from '/user/strategies/CTF_advanced.mjs';
+import Arena from './arena.mjs';
+import CaptureTheFlagBasic from '../strategies/CTF_basic.mjs';
+import CaptureTheFlagAdvanced from '../strategies/CTF_advanced.mjs';
+import RoomPosition from '../roomPosition.mjs'
 
 import * as utils from '/user/utils/utils.mjs';
 
 class CaptureTheFlagArena extends Arena {
+
+	constructor() {
+		super();
+		this._bridges = null
+	}
+
 	get strategy() {
 		if (this.level === 1)
 			return new CaptureTheFlagBasic();
@@ -18,7 +25,20 @@ class CaptureTheFlagArena extends Arena {
 
 	}
 
+	get bridges() {
+		if (!this._bridges) {
+			this._bridges = [
+				new RoomPosition('Bridge-1', { x: 35, y: 65 }),
+				new RoomPosition('Bridge-2',{ x: 65, y: 35 }),
+			]
+		}
 
+		return this._bridges
+	}
+
+	get gatherPoints() {
+
+	}
 	get flags() {
 		return getObjectsByPrototype(Flag);
 	}

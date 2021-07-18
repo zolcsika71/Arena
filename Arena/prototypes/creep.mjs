@@ -6,6 +6,12 @@ import {searchPath} from '/game/path-finder';
 
 import {Creep} from '/game/prototypes';
 
+import HealerWeapon from '../weapon/healerWeapon.mjs'
+import MeleeWeapon from '../weapon/meleeWeapon.mjs'
+import RangedWeapon from '../weapon/rangedWeapon.mjs'
+
+import Arena from '../getArena.mjs'
+
 
 const prototype = Creep.prototype;
 
@@ -74,7 +80,7 @@ Object.defineProperties(prototype, {
 		},
 		configurable: true,
 	},
-	'bodyParts' : {
+	'bodyParts': {
 		get: function () {
 			let bodyParts = {}
 			for (let bodyPart of this.body) {
@@ -127,6 +133,12 @@ Object.defineProperties(prototype, {
 			return bodyParts
 		},
 		configurable: true,
+	},
+	'position': {
+		get: function () {
+			return {x: this.x, y: this.y}
+		},
+		configurable: true,
 	}
 });
 
@@ -135,42 +147,32 @@ prototype.toString = function () {
 	return `[${this.constructor.name}:${faction}] ${this.x},${this.y}`;
 };
 
-prototype.start = function (components=[]) {
-	this.components = components;
-
-	switch (true) {
-		case this.isRanged:
-			this.role = 'Ranged';
-			break;
-		case this.isMelee:
-			this.role = 'Melee';
-			break;
-		case this.isHealer:
-			this.role = 'Healer';
-			break;
-	}
-
-	for (const component of components) {
-		component.start();
+prototype.start = function (actions=[]) {
+	this.actions = actions;
+	for (const action of actions) {
+		action.start();
 	}
 };
 
 prototype.update = function () {
-	for (const component of this.components) {
-		component.update();
+	for (const action of this.actions) {
+		action.update();
 	}
 };
 
 prototype.standsOn = function (position) {
-	return position.x === this.x && position.y === this.y;
+	// return position.x === this.x && position.y === this.y;
+	return _.isEqual(this.position, position);
 };
+
 
 prototype.inRangeTo = function (target, range) {
 	return this.getRangeTo(target) <= range;
 };
 
 prototype.flee = function (targets, range) {
-	if (range <= 1) return;
+	if (range <= 1)
+		return;
 
 	let origin = this;
 	let goals = targets.map(i => ({pos: i, range}));
@@ -186,5 +188,9 @@ prototype.flee = function (targets, range) {
 		this.move(direction);
 	}
 };
+
+prototype.getDirectionTo = function (target) {
+
+}
 
 export default Creep;

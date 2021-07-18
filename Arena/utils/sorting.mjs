@@ -3,14 +3,17 @@
 import {getRange} from '/game/utils'
 
 class Sorting {
-    static DESC = -1
-    static ASC = 1
 
-    byRangeTo(position, direction = Sorting.ASC) {
+    constructor() {
+        this.DESC = -1
+        this.ASC = 1
+    }
+
+    byRangeTo(position, direction = this.ASC) {
         return (a, b) => (getRange(a, position) - getRange(b, position)) * direction
     }
 
-    byHits(direction = Sorting.ASC) {
+    byHits(direction = this.ASC) {
         return (a, b) => (a.hits - b.hits) * direction
     }
 }

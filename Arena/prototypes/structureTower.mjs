@@ -45,7 +45,6 @@ prototype.update = function () {
 
 		this.heal(target);
 
-		return;
 	}
 };
 
