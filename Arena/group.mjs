@@ -117,8 +117,9 @@ class Group {
 			creep.target = target[creep.role.toString()];
 
 			if (isSpreadTooHigh) {
-				if (!creep.inRangeTo(leader, 2))
-					this.keepFormation()
+				if (!creep.position.inRangeTo(leader, 2))
+					// this.keepFormation(creep)
+					creep.goal = this.leader
 				else
 					creep.goal = creep;
 			} else
@@ -130,7 +131,7 @@ class Group {
 
 	occupiedByCreep(position) {
 		for (const creep of Arena.creeps) {
-			if (creep.standsOn(position) || (creep.my && creep.goal === position))
+			if (creep.position.standsOn(position) || (creep.my && creep.goal === position))
 				return true;
 		}
 		return false;
@@ -138,7 +139,7 @@ class Group {
 
 	keepFormation(creep) {
 		const leader = this.leader;
-		// const members = this.members;
+		const members = this.members;
 
 		let formationPositions = [
 				{
@@ -172,8 +173,6 @@ class Group {
 				},
 			];
 
-
-
 		if (creep === leader)
 			return;
 		// else {
@@ -201,7 +200,7 @@ class Group {
 	}
 
 	positionReached(position) {
-		let standsOn = this.members.some(i => i.standsOn(position));
+		let standsOn = this.members.some(i => i.position.standsOn(position));
 
 		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
 

@@ -1,5 +1,6 @@
 'use strict'
 
+
 import Component from '../utils/component.mjs'
 
 class MoveToGoalAction extends Component {
@@ -14,7 +15,7 @@ class MoveToGoalAction extends Component {
         const goal = creep.goal
 
         if (goal) {
-            creep.moveTo(goal)
+            creep.travelTo(goal)
         }
     }
 }

@@ -26,10 +26,10 @@ class MovementAction extends Component {
                 // behaviour: alert range
                 if (creep.inRangeTo(goal, creep.alertRange)) {
                     // follow target, because we're in alertRange
-                    creep.moveTo(target)
+                    creep.travelTo(target)
                 } else {
                     // move to goal, because we're out of alertRange
-                    creep.moveTo(goal)
+                    creep.travelTo(goal)
                 }
             }
         } else {

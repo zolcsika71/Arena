@@ -8,6 +8,9 @@ import Arena from '/user/getArena.mjs'
 import Cache from './Cache.mjs'
 import Stats from './utils/stats.mjs'
 
+import Traveller from './utils/Traveller.mjs';
+
+
 
 class GameManager {
 	constructor() {

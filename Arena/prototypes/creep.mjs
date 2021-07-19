@@ -6,11 +6,15 @@ import {searchPath} from '/game/path-finder';
 
 import {Creep} from '/game/prototypes';
 
+import RoomPosition from '../roomPosition.mjs';
+
 import HealerWeapon from '../weapon/healerWeapon.mjs'
 import MeleeWeapon from '../weapon/meleeWeapon.mjs'
 import RangedWeapon from '../weapon/rangedWeapon.mjs'
 
 import Arena from '../getArena.mjs'
+
+import Traveller from '../utils/Traveller.mjs';
 
 
 const prototype = Creep.prototype;
@@ -136,7 +140,10 @@ Object.defineProperties(prototype, {
 	},
 	'position': {
 		get: function () {
-			return {x: this.x, y: this.y}
+			return new RoomPosition(this.id, {
+				x: this.x,
+				y: this.y
+			})
 		},
 		configurable: true,
 	}
@@ -160,16 +167,6 @@ prototype.update = function () {
 	}
 };
 
-prototype.standsOn = function (position) {
-	// return position.x === this.x && position.y === this.y;
-	return _.isEqual(this.position, position);
-};
-
-
-prototype.inRangeTo = function (target, range) {
-	return this.getRangeTo(target) <= range;
-};
-
 prototype.flee = function (targets, range) {
 	if (range <= 1)
 		return;
@@ -189,8 +186,23 @@ prototype.flee = function (targets, range) {
 	}
 };
 
-prototype.getDirectionTo = function (target) {
+// prototype.standsOn = function (position) {
+// 	// return position.x === this.x && position.y === this.y;
+// 	return _.isEqual(this.position, position);
+// };
+//
+//
+// prototype.inRangeTo = function (target, range) {
+// 	return this.getRangeTo(target) <= range;
+// };
+//
+// prototype.getDirectionTo = function (target) {
+// 	return getDirection(target.x - this.x, target.y - this.y)
+// }
+//
+// prototype.isNearTo = function (target) {
+// 	return this.inRangeTo(target, 1)
+// }
 
-}
 
 export default Creep;

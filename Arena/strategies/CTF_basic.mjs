@@ -56,6 +56,8 @@ class CaptureTheFlagBasic {
 		console.log(`ranged: ${ranged}`);
 		console.log(`healer: ${healer}`);
 
+
+
 	}
 
 	findTarget(group) {
@@ -66,7 +68,7 @@ class CaptureTheFlagBasic {
 		const position = group.leader
 		const alertRange = this.alertRange(group)
 		const enemies = Arena.enemyCreeps
-		.filter(i => i.inRangeTo(position, alertRange))
+		.filter(i => i.position.inRangeTo(position, alertRange))
 		.sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits)
 
 		if (enemies.length === 0)
