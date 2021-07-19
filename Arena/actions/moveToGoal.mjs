@@ -15,7 +15,7 @@ class MoveToGoalAction extends Component {
         const goal = creep.goal
 
         if (goal) {
-            creep.travelTo(goal)
+            creep.moveTo(goal)
         }
     }
 }

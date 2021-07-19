@@ -32,14 +32,14 @@ class Stats {
     update() {
         if(this.timeForOutput) {
 
-            for (const group of Strategy.attackers)
-                this.displayGroups(group)
-
-            for (const group of Strategy.defenders)
-                this.displayGroups(group)
-
-            console.log('friends', Arena.myCreeps.length)
-            console.log('enemies', Arena.enemyCreeps.length)
+            // for (const group of Strategy.attackers)
+            //     this.displayGroups(group)
+            //
+            // for (const group of Strategy.defenders)
+            //     this.displayGroups(group)
+            //
+            // console.log('friends', Arena.myCreeps.length)
+            // console.log('enemies', Arena.enemyCreeps.length)
         }
     }
 }

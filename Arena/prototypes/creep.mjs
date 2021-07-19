@@ -186,16 +186,16 @@ prototype.flee = function (targets, range) {
 	}
 };
 
-// prototype.standsOn = function (position) {
-// 	// return position.x === this.x && position.y === this.y;
-// 	return _.isEqual(this.position, position);
-// };
-//
-//
-// prototype.inRangeTo = function (target, range) {
-// 	return this.getRangeTo(target) <= range;
-// };
-//
+prototype.standsOn = function (position) {
+	// return position.x === this.x && position.y === this.y;
+	return _.isEqual(this.position, position);
+};
+
+
+prototype.inRangeTo = function (target, range) {
+	return this.getRangeTo(target) <= range;
+};
+
 // prototype.getDirectionTo = function (target) {
 // 	return getDirection(target.x - this.x, target.y - this.y)
 // }

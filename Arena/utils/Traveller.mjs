@@ -6,6 +6,7 @@ import {searchPath} from '/game/path-finder';
 import {CostMatrix} from '/game/path-finder';
 import {getObjectsByPrototype} from '/game/utils';
 import {Creep, Structure, StructureRampart,  StructureRoad, StructureContainer, ConstructionSite} from '/game/prototypes';
+import utils from './utils.mjs';
 
 
 
@@ -31,9 +32,12 @@ class Traveller {
 			return ERR_TIRED;
 
 		let rangeToDestination = creep.getRangeTo(destination);
+		console.log(`rangeToDestination: ${rangeToDestination}`)
+
 
 		if (options.range && rangeToDestination <= options.range)
 			return OK;
+
 		else if (rangeToDestination <= 1) {
 			if (rangeToDestination === 1 && !options.range) {
 				let direction = creep.getDirectionTo(destination);
@@ -51,6 +55,8 @@ class Traveller {
 
 		let travelData = creep.memory._travel;
 		let state = this.deserializeState(travelData, destination);
+
+		console.log(`state: ${utils.json(state)}`)
 
 		if (this.isStuck(creep, state))
 			state.stuckCount++;
@@ -91,6 +97,8 @@ class Traveller {
 
 			let ret = this.findTravelPath(creep, destination, options);
 
+			// console.log(`path: ${utils.json(ret)}`)
+
 			if (ret.incomplete) {
 				// uncommenting this is a great way to diagnose creep behavior issues
 				console.log(`TRAVELER: incomplete path for ${creep.name}`);
@@ -110,6 +118,9 @@ class Traveller {
 			travelData.path = travelData.path.substr(1);
 
 		let nextDirection = parseInt(travelData.path[0], 10);
+
+		// console.log(`travelDataPath: ${travelData.path}`)
+		// console.log(`nextDirection: ${nextDirection}`)
 
 		if (options.returnData) {
 			if (nextDirection) {
@@ -254,13 +265,12 @@ class Traveller {
 
 	static serializePath(startPos, path) {
 		let serializedPath = '';
-		let lastPosition = startPos;
+		let lastPosition = new RoomPosition('startPos', startPos.x, startPos.y);
 		// this.circle(startPos, color);
 		for (let position of path) {
-			// new RoomVisual(position.roomName)
-			// .line(position, lastPosition, { color: color, lineStyle: "dashed" });
+			// console.log(`position${path}`)
 			serializedPath += lastPosition.getDirectionTo(position);
-			lastPosition = position;
+			lastPosition = new RoomPosition('position', position.x, position.y);
 		}
 		return serializedPath;
 	}
@@ -283,21 +293,20 @@ class Traveller {
 			// state.cpu = travelData.state[STATE_CPU];
 			state.stuckCount = travelData.state[STATE_STUCK];
 			// TODO name is important?
-			state.destination = new RoomPosition(travelData.state[STATE_DEST_ROOMNAME],
+			state.destination = new RoomPosition('destination',
 				{
 					x: travelData.state[STATE_DEST_X],
 					y: travelData.state[STATE_DEST_Y],
 				},
 			);
 		} else {
-			// state.cpu = 0;
 			state.destination = destination;
 		}
 		return state;
 	}
 
 	static serializeState(creep, destination, state, travelData) {
-		travelData.state = [creep.pos.x, creep.pos.y, state.stuckCount, destination.x, destination.y];
+		travelData.state = [creep.x, creep.y, state.stuckCount, destination.x, destination.y];
 	}
 
 	static sameCoord(pos1, pos2) {

@@ -12,11 +12,13 @@ import LastStandAction from '../actions/lastStand.mjs';
 import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
+import utils from '../utils/utils.mjs';
 
 
 class CaptureTheFlagBasic {
 
 	static DELAY = 150
+
 
 	constructor() {
 		this.attackers = [];
@@ -68,7 +70,7 @@ class CaptureTheFlagBasic {
 		const position = group.leader
 		const alertRange = this.alertRange(group)
 		const enemies = Arena.enemyCreeps
-		.filter(i => i.position.inRangeTo(position, alertRange))
+		.filter(i => i.inRangeTo(position, alertRange))
 		.sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits)
 
 		if (enemies.length === 0)
@@ -217,7 +219,7 @@ class CaptureTheFlagBasic {
 			Arena.enemyFlag,
 		]
 
-		console.log('Current Capture Point:\n', this.currentCapturePoint)
+		console.log('Current Capture Point:\n', this.currentCapturePoint.toString())
 
 		this.initGroups()
 		this.initCreeps()
@@ -251,22 +253,34 @@ class CaptureTheFlagBasic {
 
 
 	update() {
-		this.attackers = this.cleanGroups(this.attackers)
-		this.defenders = this.cleanGroups(this.defenders)
 
-		console.log(`CTF_Basic_UPDATE`);
-		// console.log(`CTF_defenders: ${this.defenders.length}`)
-		// console.log(`CTF_attackers: ${this.attackers.length}`)
+		let group = this.defenders[0]
+		let creep = group.members[0]
 
-		for (const group of this.attackers)
-			this.updateGroups(group)
+		console.log(`creep: ${creep.id}`)
+		console.log(`travelMemory: ${utils.json(creep.memory._travel)}`)
+		console.log(`destination: ${Arena.myFlag.x} ${Arena.myFlag.y}`)
 
-		for (const group of this.defenders)
-			this.updateGroups(group)
+		let ret = creep.travelTo(Arena.myFlag)
 
-		const tower = Arena.myTower
-		if (tower)
-			tower.update()
+		console.log(`ret: ${ret}`)
+
+		// this.attackers = this.cleanGroups(this.attackers)
+		// this.defenders = this.cleanGroups(this.defenders)
+		//
+		// console.log(`CTF_Basic_UPDATE`);
+		// // console.log(`CTF_defenders: ${this.defenders.length}`)
+		// // console.log(`CTF_attackers: ${this.attackers.length}`)
+		//
+		// for (const group of this.attackers)
+		// 	this.updateGroups(group)
+		//
+		// for (const group of this.defenders)
+		// 	this.updateGroups(group)
+		//
+		// const tower = Arena.myTower
+		// if (tower)
+		// 	tower.update()
 	}
 }
 

@@ -117,7 +117,7 @@ class Group {
 			creep.target = target[creep.role.toString()];
 
 			if (isSpreadTooHigh) {
-				if (!creep.position.inRangeTo(leader, 2))
+				if (!creep.inRangeTo(leader, 2))
 					// this.keepFormation(creep)
 					creep.goal = this.leader
 				else
@@ -200,7 +200,7 @@ class Group {
 	}
 
 	positionReached(position) {
-		let standsOn = this.members.some(i => i.position.standsOn(position));
+		let standsOn = this.members.some(i => i.standsOn(position));
 
 		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
 

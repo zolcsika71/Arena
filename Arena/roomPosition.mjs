@@ -2,7 +2,7 @@
 
 import {getDirection} from '/game/utils';
 import {getObjectsByPrototype} from '/game/utils';
-import {GameObject} from '/game/prototypes/'
+
 
 class RoomPosition {
     constructor(name, position) {
@@ -11,22 +11,22 @@ class RoomPosition {
         this.x = position.x
         this.y = position.y
     }
-    // TODO write it
-    getRangeTo = function (target) {
-        return 100
-    }
 
-    standsOn = function (position) {
-        // return position.x === this.x && position.y === this.y;
-        return _.isEqual(this.pos, position);
-    };
 
-    inRangeTo = function (target, range) {
-        return this.getRangeTo(target) <= range;
-    };
+    // standsOn = function (position) {
+    //     // return position.x === this.x && position.y === this.y;
+    //     return _.isEqual(this.pos, position);
+    // };
 
     isNearTo = function (target) {
-        return this.inRangeTo(target, 1)
+        let offsetX = [0, 0, 1, 1, 1, 0, -1, -1, -1],
+            offsetY = [0, -1, -1, 0, 1, 1, 1, 0, -1];
+        for (let i = 0; i < 9; i++) {
+            if (target.x + offsetX[i] === this.x && target.y + offsetY[i] === this.y)
+                return true
+        }
+
+        return false
     }
 
     getDirectionTo = function (target) {
