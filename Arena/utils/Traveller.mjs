@@ -56,6 +56,7 @@ class Traveller {
 		let travelData = creep.memory._travel;
 		let state = this.deserializeState(travelData, destination);
 
+		// TODO destination wrong format
 		console.log(`state: ${utils.json(state)}`)
 
 		if (this.isStuck(creep, state))
