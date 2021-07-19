@@ -173,7 +173,7 @@ class Group {
 				},
 			];
 
-		if (creep === leader)
+		if (creep.id === leader.id)
 			return;
 		// else {
 		// 	for (const member of members) {
