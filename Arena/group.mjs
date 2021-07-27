@@ -1,9 +1,9 @@
 'use strict';
 
-import Sorting from '/user/utils/sorting';
 import Cache from './Cache.mjs';
 import RoomPosition from './roomPosition.mjs';
 import Arena from './getArena.mjs';
+import utils from './utils/utils.mjs';
 
 class Group {
 	constructor(name, collection) {
@@ -20,9 +20,8 @@ class Group {
 	get members() {
 		if (!Cache.has(`members-${this.name}`)) {
 			for (const creep of this._members) {
-				if (creep.isDead) {
+				if (creep.isDead)
 					this.delete(creep);
-				}
 			}
 
 			Cache.add(`members-${this.name}`);
@@ -34,7 +33,7 @@ class Group {
 	get wounded() {
 		return this.members
 		.filter(i => i.isWounded)
-		.sort(Sorting.byHits());
+		.sort(utils.byHits());
 	}
 
 	get isSpreadTooHigh() {
@@ -47,7 +46,7 @@ class Group {
 
 	get spread() {
 		const leader = this.leader;
-		const sorted = this.members.sort(Sorting.byRangeTo(leader, Sorting.DESC));
+		const sorted = this.members.sort(utils.byRangeTo(leader, true));
 		return leader.getRangeTo(sorted[0]);
 	}
 
@@ -60,6 +59,7 @@ class Group {
 	add(creep) {
 		if (this.full(creep.role))
 			return false;
+
 		this._members.push(creep);
 		creep.group = this;
 
@@ -67,7 +67,6 @@ class Group {
 
 		if (!this.leader && creep.role === this.collection.leader) {
 			this.leader = creep;
-			// console.log('leader: ', this.leader)
 		}
 		return true;
 	}
@@ -105,7 +104,6 @@ class Group {
 		if (members.length === 0)
 			return;
 
-
 		const leader = this.leader;
 		const target = this.targetDefinition;
 		const goal = this.goalDefinition;
@@ -117,13 +115,14 @@ class Group {
 			creep.target = target[creep.role.toString()];
 
 			if (isSpreadTooHigh) {
-				if (!creep.inRangeTo(leader, 2))
+				if (!creep.inRangeTo(leader, this.optimalSpread)) {
 					// this.keepFormation(creep)
-					creep.goal = this.leader
-				else
-					creep.goal = creep;
-			} else
+					creep.goal = new RoomPosition('leader', this.leader)
+				} else
+					creep.goal = new RoomPosition('creep', creep);
+			} else {
 				creep.goal = goal[creep.role.toString()];
+			}
 
 			creep.update();
 		}
@@ -131,7 +130,7 @@ class Group {
 
 	occupiedByCreep(position) {
 		for (const creep of Arena.creeps) {
-			if (creep.position.standsOn(position) || (creep.my && creep.goal === position))
+			if (creep.standsNear(position) || (creep.my && creep.goal === position))
 				return true;
 		}
 		return false;
@@ -200,11 +199,16 @@ class Group {
 	}
 
 	positionReached(position) {
-		let standsOn = this.members.some(i => i.standsOn(position));
+		// if (this.goalDefinition.length === 1)
+		// 	return this.members.some(i => i.standsOn(position))
+		// else
+		// 	return this.members.some(i => i.standsNear(position));
+
+		return this.leader.standsOn(position)
 
 		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
 
-		return standsOn && this.isSpreadOk;
+
 	}
 }
 

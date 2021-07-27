@@ -7,9 +7,7 @@ import Util from '/user/utils/utils.mjs'
 import Arena from '/user/getArena.mjs'
 import Cache from './Cache.mjs'
 import Stats from './utils/stats.mjs'
-
 import Traveller from './utils/Traveller.mjs';
-
 
 
 class GameManager {
@@ -30,17 +28,16 @@ class GameManager {
 
 	loop() {
 		if (this.isFirstTick) {
-			console.log(`first tick:`)
 			for (const module of this.modules) {
 				// console.log(`module: ${module.className}`)
-				if (typeof module.start === 'function') {
+				if (_.isFunction(module.start)) {
 					module.start()
 				}
 			}
 		} else {
 			for (const module of this.modules) {
 				// console.log(`module: ${module.className}`)
-				if (typeof module.update === 'function') {
+				if (_.isFunction(module.update)) {
 					module.update()
 				}
 			}

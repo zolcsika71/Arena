@@ -13,9 +13,9 @@ import MeleeWeapon from '../weapon/meleeWeapon.mjs'
 import RangedWeapon from '../weapon/rangedWeapon.mjs'
 
 import Arena from '../getArena.mjs'
+import utils from '../utils/utils.mjs';
 
-import Traveller from '../utils/Traveller.mjs';
-
+// import Traveller from '../utils/Traveller.mjs';
 
 const prototype = Creep.prototype;
 
@@ -150,8 +150,8 @@ Object.defineProperties(prototype, {
 });
 
 prototype.toString = function () {
-	const faction = this.my ? 'friend' : 'enemy';
-	return `[${this.constructor.name}:${faction}] ${this.x},${this.y}`;
+	const faction = this.my ? 'Friend' : 'Enemy';
+	return `[${faction}, {id: ${this.id}, role: ${this.role}, x: ${this.x}, y: ${this.y}}]`;
 };
 
 prototype.start = function (actions=[]) {
@@ -181,7 +181,6 @@ prototype.flee = function (targets, range) {
 
 	if (result.path.length > 0) {
 		let direction = getDirection(result.path[0].x - this.x, result.path[0].y - this.y);
-
 		this.move(direction);
 	}
 };
@@ -189,7 +188,13 @@ prototype.flee = function (targets, range) {
 prototype.standsOn = function (position) {
 	// return position.x === this.x && position.y === this.y;
 	return _.isEqual(this.position, position);
+
 };
+
+prototype.standsNear = function (position) {
+	let target = utils.getRoomPosition('target,', position)
+	return target.isNearTo(this)
+}
 
 
 prototype.inRangeTo = function (target, range) {

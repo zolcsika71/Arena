@@ -2,27 +2,37 @@
 
 import RoomPosition from '../roomPosition.mjs';
 import Arena from '../getArena.mjs';
-import {searchPath} from '/game/path-finder';
-import {CostMatrix} from '/game/path-finder';
+import {CostMatrix, searchPath} from '/game/path-finder';
 import {getObjectsByPrototype} from '/game/utils';
-import {Creep, Structure, StructureRampart,  StructureRoad, StructureContainer, ConstructionSite} from '/game/prototypes';
+import {ERR_BUSY, ERR_INVALID_ARGS, ERR_NO_PATH, ERR_TIRED, OK} from '/game/constants';
+import {ConstructionSite, Creep, Structure, StructureContainer, StructureRampart, StructureRoad} from '/game/prototypes';
 import utils from './utils.mjs';
 
-
-
-const REPORT_CPU_THRESHOLD = 1000;
 const DEFAULT_MAXOPS = 50000;
 const DEFAULT_STUCK_VALUE = 2;
 const STATE_PREV_X = 0;
 const STATE_PREV_Y = 1;
 const STATE_STUCK = 2;
-// const STATE_CPU = 3;
-const STATE_DEST_X = 4;
-const STATE_DEST_Y = 5;
-const STATE_DEST_ROOMNAME = 6;
+const STATE_DEST_X = 3;
+const STATE_DEST_Y = 4;
 
 class Traveller {
-
+	// static options = {
+	// 	maxOps: DEFAULT_MAXOPS,
+	// 	ignoreRoads: false,
+	// 	ignoreCreeps: true,
+	// 	offRoad: false,
+	// 	stuckValue: 2,
+	// 	ignoreStructures: false,
+	// 	range: 1,
+	// 	obstacles: [],
+	// 	getMatrix: null,
+	// 	returnData: null,
+	// 	movingTarget: false,
+	// 	rePath: false,
+	// 	travelData: null,
+	// 	freshMatrix: false,
+	// };
 
 	static travelTo(creep, destination, options = {}) {
 		if (!destination)
@@ -31,33 +41,33 @@ class Traveller {
 		if (creep.fatigue > 0)
 			return ERR_TIRED;
 
+		// if (this.sameCoord(creep, destination))
+		// 	return OK;
+		destination = utils.getRoomPosition('destination', destination)
 		let rangeToDestination = creep.getRangeTo(destination);
-		console.log(`rangeToDestination: ${rangeToDestination}`)
-
 
 		if (options.range && rangeToDestination <= options.range)
 			return OK;
 
 		else if (rangeToDestination <= 1) {
 			if (rangeToDestination === 1 && !options.range) {
-				let direction = creep.getDirectionTo(destination);
+				let direction = creep.position.getDirectionTo(destination);
 				if (options.returnData) {
 					options.returnData.nextPos = destination;
 					options.returnData.path = direction.toString();
 				}
+
 				return creep.move(direction);
 			}
 			return OK;
 		}
 		// initialize data object
-		if (!creep.memory._travel)
-			creep.memory._travel = {};
+		if (!creep.travel)
+			creep.travel = {};
 
-		let travelData = creep.memory._travel;
+		let travelData = creep.travel;
+
 		let state = this.deserializeState(travelData, destination);
-
-		// TODO destination wrong format
-		console.log(`state: ${utils.json(state)}`)
 
 		if (this.isStuck(creep, state))
 			state.stuckCount++;
@@ -68,6 +78,7 @@ class Traveller {
 		if (!options.stuckValue) {
 			options.stuckValue = DEFAULT_STUCK_VALUE;
 		}
+
 		if (state.stuckCount >= options.stuckValue && Math.random() > .5) {
 			options.ignoreCreeps = false;
 			options.freshMatrix = true;
@@ -83,7 +94,7 @@ class Traveller {
 				delete travelData.path;
 		}
 
-		if (options.repath && Math.random() < options.repath) {
+		if (options.rePath && Math.random() < options.rePath) {
 			// add some chance that you will find a new path randomly
 			delete travelData.path;
 		}
@@ -102,12 +113,15 @@ class Traveller {
 
 			if (ret.incomplete) {
 				// uncommenting this is a great way to diagnose creep behavior issues
-				console.log(`TRAVELER: incomplete path for ${creep.name}`);
-				// color = "red";
+				console.log(`TRAVELER: incomplete path for Creep ${creep.id} target: ${creep.goal}`);
 			}
-			if (options.returnData)
+			if (options.returnData) {
 				options.returnData.pathfinderReturn = ret;
+				options.returnData.costMatrix = ret.costMatrix
+			}
+
 			travelData.path = Traveller.serializePath(creep.position, ret.path);
+
 			state.stuckCount = 0;
 		}
 		this.serializeState(creep, destination, state, travelData);
@@ -150,6 +164,9 @@ class Traveller {
 
 		let callback = () => {
 
+			// console.log(`CallBack is running`)
+			// console.log(`options: ${utils.json(options)}`)
+
 			let matrix;
 
 			if (options.ignoreStructures) {
@@ -158,9 +175,9 @@ class Traveller {
 					Traveller.addCreepsToMatrix(matrix);
 				}
 			} else if (options.ignoreCreeps) {
-				matrix = this.getStructureMatrix(options.freshMatrix);
+				matrix = Traveller.getStructureMatrix(options.freshMatrix);
 			} else {
-				matrix = this.getCreepMatrix();
+				matrix = Traveller.getCreepMatrix();
 			}
 			if (options.obstacles) {
 				matrix = matrix.clone();
@@ -169,42 +186,24 @@ class Traveller {
 				}
 			}
 
-			if (options.roomCallback) {
+			if (options.getMatrix) {
 				if (!matrix) {
 					matrix = new CostMatrix();
 				}
-				let outcome = options.roomCallback(matrix.clone());
+				let outcome = options.getMatrix(matrix.clone());
 				if (outcome !== undefined) {
 					return outcome;
 				}
 			}
 			return matrix;
 		};
-		let ret = searchPath(origin, destination, {
+		return searchPath(origin, destination, {
+			costMatrix: callback(),
 			maxOps: options.maxOps,
 			plainCost: options.offRoad ? 1 : options.ignoreRoads ? 1 : 2,
 			swampCost: options.offRoad ? 1 : options.ignoreRoads ? 5 : 10,
-			range: options.range,
-			roomCallback: callback,
+			range: options.range
 		});
-		// if (ret.incomplete && options.ensurePath) {
-		// 	if (options.useFindRoute === undefined) {
-		// 		// handle case where pathfinder failed at a short distance due to not using findRoute
-		// 		// can happen for situations where the creep would have to take an uncommonly indirect path
-		// 		// options.allowedRooms and options.routeCallback can also be used to handle this situation
-		// 		if (roomDistance <= 2) {
-		// 			console.log(`TRAVELER: path failed without findroute, trying with options.useFindRoute = true`);
-		// 			console.log(`from: ${origin}, destination: ${destination}`);
-		// 			options.useFindRoute = true;
-		// 			ret = this.findTravelPath(origin, destination, options);
-		// 			console.log(`TRAVELER: second attempt was ${ret.incomplete ? 'not ' : ''}successful`);
-		// 			return ret;
-		// 		}
-		// 		// TODO: handle case where a wall or some other obstacle is blocking the exit assumed by findRoute
-		// 	} else {
-		// 	}
-		// }
-		return ret;
 	}
 
 	static getStructureMatrix(freshMatrix) {
@@ -216,62 +215,58 @@ class Traveller {
 		return this.structureMatrixCache;
 	}
 
-	static getCreepMatrix(room) {
+	static getCreepMatrix() {
 		if (!this.creepMatrixCache || Arena.time !== this.creepMatrixTick) {
 			this.creepMatrixTick = Arena.time;
 			this.creepMatrixCache = Traveller.addCreepsToMatrix(this.getStructureMatrix(true).clone());
+
 		}
+		// console.log(`creepMatrixCache: ${utils.json(this.creepMatrixCache._bits)}`)
 		return this.creepMatrixCache;
 	}
 
 	static addStructuresToMatrix(matrix, roadCost) {
 		let impassibleStructures = [];
-		let structures = getObjectsByPrototype(Structure)
+		let structures = getObjectsByPrototype(Structure);
 		for (let structure of structures) {
 			if (structure instanceof StructureRampart) {
-				if (!structure.my && !structure.isPublic) {
+				if (!structure.my)
 					impassibleStructures.push(structure);
-				}
-			}
-			else if (structure instanceof StructureRoad) {
-				matrix.set(structure.pos.x, structure.pos.y, roadCost);
-			}
-			else if (structure instanceof StructureContainer) {
-				matrix.set(structure.pos.x, structure.pos.y, 5);
-			}
-			else {
+			} else if (structure instanceof StructureRoad) {
+				matrix.set(structure.x, structure.y, roadCost);
+			} else if (structure instanceof StructureContainer) {
+				matrix.set(structure.x, structure.y, 5);
+			} else {
 				impassibleStructures.push(structure);
 			}
 		}
 
-		let myConstructionSites = getObjectsByPrototype(ConstructionSite)
+		let myConstructionSites = getObjectsByPrototype(ConstructionSite);
 
 		for (let site of myConstructionSites) {
 			if (site.structure === StructureContainer || site.structure === StructureRoad
 				|| site.structureType === StructureRampart) {
 				continue;
 			}
-			matrix.set(site.pos.x, site.pos.y, 0xff);
+			matrix.set(site.x, site.y, 0xff);
 		}
 		for (let structure of impassibleStructures) {
-			matrix.set(structure.pos.x, structure.pos.y, 0xff);
+			matrix.set(structure.x, structure.y, 0xff);
 		}
 		return matrix;
 	}
 
 	static addCreepsToMatrix(matrix) {
-		Arena.creeps.forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
+		Arena.creeps.forEach((creep) => matrix.set(creep.x, creep.y, 0xff));
 		return matrix;
 	}
 
 	static serializePath(startPos, path) {
 		let serializedPath = '';
-		let lastPosition = new RoomPosition('startPos', startPos.x, startPos.y);
-		// this.circle(startPos, color);
+		let lastPosition = utils.getRoomPosition('startPos', startPos);
 		for (let position of path) {
-			// console.log(`position${path}`)
 			serializedPath += lastPosition.getDirectionTo(position);
-			lastPosition = new RoomPosition('position', position.x, position.y);
+			lastPosition = utils.getRoomPosition('position', position);
 		}
 		return serializedPath;
 	}
@@ -293,7 +288,7 @@ class Traveller {
 			state.lastCoord = {x: travelData.state[STATE_PREV_X], y: travelData.state[STATE_PREV_Y]};
 			// state.cpu = travelData.state[STATE_CPU];
 			state.stuckCount = travelData.state[STATE_STUCK];
-			// TODO name is important?
+			// console.log(`x: ${travelData.state[STATE_DEST_X]} y: ${travelData.state[STATE_DEST_Y]}`)
 			state.destination = new RoomPosition('destination',
 				{
 					x: travelData.state[STATE_DEST_X],
@@ -329,6 +324,7 @@ class Traveller {
 
 Traveller.structureMatrixCache = {};
 Traveller.creepMatrixCache = {};
+
 Creep.prototype.travelTo = function (destination, options) {
 	return Traveller.travelTo(this, destination, options);
 };

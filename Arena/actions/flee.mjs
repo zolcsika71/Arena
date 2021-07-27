@@ -1,7 +1,7 @@
 'use strict'
 
 import Arena from '../getArena.mjs'
-import Sorting from '../utils/sorting.mjs'
+import utils from '../utils/utils.mjs';
 import Component from '../utils/component.mjs'
 
 class Flee extends Component {
@@ -27,12 +27,13 @@ class Flee extends Component {
         let enemiesInRange = Arena.enemyCreeps
             .filter(i => i.canAttack && i.inRangeTo(creep, i.weapon.range))
 
-        if (enemiesInRange.length === 0) return
+        if (enemiesInRange.length === 0)
+            return
 
         let fleeRange = 0
 
         const distances = enemiesInRange
-            .sort(Sorting.byRangeTo(creep))
+            .sort(utils.byRangeTo(creep))
             .map(i => creep.getRangeTo(i))
 
         if (creep.hits <= this.meleeHitsThreshold) {

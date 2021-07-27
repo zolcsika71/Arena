@@ -2,6 +2,7 @@
 
 import Component from '../utils/component.mjs'
 import {getRange} from '/game/utils'
+import utils from '../utils/utils.mjs'
 
 class MovementAction extends Component {
     constructor(creep) {
@@ -14,26 +15,46 @@ class MovementAction extends Component {
         const target = creep.target
         const goal = creep.goal
 
+        // console.log(`target: ${utils.json(target)}`)
+        // console.log(`goal: ${utils.json(goal)}`)
+
         if (target) {
             // behaviour: distance to target
             if (creep.inRangeTo(target, creep.weapon.range)) {
                 // should creep move closer than attackRange to the target?
-                // if (this.creep.memory.canMassAttack && getRange(this, target) > 1)
-                //     creep.moveTo(target)
+                if (this.creep.role === 'Ranged' && getRange(this, target) > 2) {
+                    let data = {}
+                    creep.travelTo(target, {returnData: data})
+                    console.log(`Creep ${creep.id} => chasing Creep ${target.id}`)
+                    if (data.path)
+                        console.log(`${data.path.length} more!`);
+                }
             } else {
                 // target out of range, should creep follow target or move to goal?
 
                 // behaviour: alert range
                 if (creep.inRangeTo(goal, creep.alertRange)) {
                     // follow target, because we're in alertRange
-                    creep.moveTo(target)
+                    let data = {}
+                    creep.travelTo(goal, {returnData: data, range: 0})
+                    // if (data.path)
+                    //     console.log(`path.length: ${data.path.length}\n`);
                 } else {
                     // move to goal, because we're out of alertRange
-                    creep.moveTo(goal)
+                    let data = {}
+                    creep.travelTo(target, {returnData: data})
+                    // if (data.path)
+                    //     console.log(`path.length: ${data.path.length}\n`);
                 }
             }
         } else {
-            creep.moveTo(goal)
+            let data = {}
+            let ret = creep.travelTo(goal, {returnData: data, range: 1})
+            // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
+            // if (data.path) {
+            //     console.log(`creepId: ${creep.id} path.length: ${data.path.length}\n`);
+            // }
+
         }
     }
 }

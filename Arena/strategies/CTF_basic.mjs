@@ -4,7 +4,9 @@ import {getRange} from '/game/utils';
 
 import Arena from '../getArena.mjs';
 import Group from '../group.mjs';
-import Util from '../utils/utils.mjs';
+import utils from '../utils/utils.mjs';
+import CapturePoint from '../CapturePoints.mjs';
+
 
 import AttackAction from '../actions/attack.mjs';
 import HealAction from '../actions/heal.mjs';
@@ -12,18 +14,35 @@ import LastStandAction from '../actions/lastStand.mjs';
 import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
-import utils from '../utils/utils.mjs';
 
 
 class CaptureTheFlagBasic {
 
-	static DELAY = 150
-
+	static DELAY = 150;
 
 	constructor() {
+		this.groups = {
+			attackers: ['Attacker_1', 'Attacker_2', 'Attacker_3'],
+			defenders: ['Defender_1'],
+		};
+		this.collections = {
+			attackers: {
+				leader: 'Ranged',
+				members: {
+					ranged: 2,
+					healer: 2,
+				},
+			},
+			defenders: {
+				leader: 'Melee',
+				members: {
+					melee: 2,
+				},
+			},
+		};
 		this.attackers = [];
 		this.defenders = [];
-		this.capturePoints = []
+		this.capturePoints = {};
 	};
 
 	get className() {
@@ -31,128 +50,112 @@ class CaptureTheFlagBasic {
 	}
 
 	get currentCapturePoint() {
-		return this.capturePoints[0]
-	}
 
-	logCreeps(creeps) {
+		const capturePoint = this.capturePoints[0];
 
-		let melee = 0, ranged = 0, healer = 0;
+		// TODO use option.getMatrix
 
-		for (const creep of creeps) {
-			console.log(`Creep: ${creep.id}`);
-			if (creep.isMelee) {
-				melee += 1;
-				console.log(`melee ${Util.json(creep.bodyParts)}`);
-			} else if (creep.isRanged) {
-				ranged += 1;
-				console.log(`ranged: ${Util.json(creep.bodyParts)}`);
-			} else if (creep.isHealer) {
-				console.log(`healer: ${Util.json(creep.bodyParts)}`);
-				healer += 1;
-			} else
-				console.log(`Unknown creep type`);
-		}
+		// console.log(`CCP: ${capturePoint}`)
 
-
-		console.log(`melee: ${melee}`);
-		console.log(`ranged: ${ranged}`);
-		console.log(`healer: ${healer}`);
-
+		return capturePoint
 
 
 	}
 
-	findTarget(group) {
+	findMeleeTarget(group) {
+
 
 		if (group.leader === null)
-			return null
+			return null;
 
+		const enemyCreeps = Arena.enemyCreeps
 		const position = group.leader
-		const alertRange = this.alertRange(group)
-		const enemies = Arena.enemyCreeps
-		.filter(i => i.inRangeTo(position, alertRange))
-		.sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits)
+		const alertRange = 1
+		const flag = Arena.myFlag
 
-		if (enemies.length === 0)
+		let targets = enemyCreeps
+		.filter(i => i.inRangeTo(position, alertRange))
+		.sort(utils.byRangeTo(flag))
+
+		if (targets.length === 0)
 			return null
 
-		return enemies[0]
+		return targets[0]
+	}
+
+	findRangedTarget(group) {
+
+		const position = group.leader;
+		const alertRange = this.alertRange(group);
+		const targets = Arena.enemyCreeps
+		.filter(i => i.inRangeTo(position, alertRange))
+		.sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits);
+
+		if (targets.length === 0)
+			return null;
+
+		return targets[0];
 	}
 
 	targetDefinition(group) {
-		const attackTarget = this.findTarget(group)
-		const healTarget = group.wounded[0]
+		const meleeTarget = this.findMeleeTarget(group)
+		const rangedTarget = this.findRangedTarget(group);
+		const healTarget = group.wounded[0];
 
 		return {
-			'Melee': attackTarget,
-			'Ranged': attackTarget,
+			'Melee': meleeTarget,
+			'Ranged': rangedTarget,
 			'Healer': healTarget,
-		}
+		};
 	}
 
 	goalDefinition(group) {
-		const name = group.name
-		let goalDefinition
+		const name = group.name;
+		let goalDefinition = {};
 
-		if (name === 'Defender-1') {
+		if (name === 'Defender_1') {
 			goalDefinition = {
-				'Melee': Arena.myFlag,
-				'Ranged': Arena.myFlag,
+				'Melee': utils.getRoomPosition('myFlag', Arena.myFlag),
+				'Ranged': utils.getRoomPosition('myFlag', Arena.myFlag),
 			}
 		}
 
-		if (name === 'Attacker-1' || name === 'Attacker-2' || name === 'Attacker-3') {
-				goalDefinition = {
-					'Melee': this.currentCapturePoint,
-					'Ranged': this.currentCapturePoint,
-					'Healer': this.currentCapturePoint,
-				}
+		if (name === 'Attacker_1' || name === 'Attacker_2' || name === 'Attacker_3') {
+			goalDefinition = {
+				'Melee': this.currentCapturePoint.position,
+				'Ranged': this.currentCapturePoint.position,
+				'Healer': this.currentCapturePoint.position,
+			}
 		}
 
 		return goalDefinition
+
 	}
 
 	alertRange(group) {
-		const name = group.name
-		let alertRange
+		const name = group.name;
+		let alertRange;
 
-		if (name === 'Defender-1') {
-			alertRange = 10
-		} else if (name === 'Attacker-1' || name === 'Attacker-2' || name === 'Attacker-3') {
-			alertRange = Arena.time <= CaptureTheFlagBasic.DELAY ? 10 : 20
+		if (name === 'Defender_1') {
+			alertRange = 10;
+		} else if (name === 'Attacker_1' || name === 'Attacker_2' || name === 'Attacker_3') {
+			alertRange = Arena.time <= CaptureTheFlagBasic.DELAY ? 10 : 20;
 		}
 
-		return alertRange
+		return alertRange;
 	}
 
 	initGroups() {
-		let attackers = ['Attacker-1', 'Attacker-2', 'Attacker-3'],
-			defenders = ['Defender-1'];
-
-		let attack_collection = {
-				leader: 'Ranged',
-				members: {
-					ranged: 2,
-					healer: 2,
-				},
-			},
-			defend_collection = {
-				leader: 'Melee',
-				members: {
-					melee: 2,
-				},
-			};
 
 		this.attackers = [];
-		for (const team of attackers)
-			this.attackers.push(new Group(team, attack_collection));
+
+		for (const team of this.groups.attackers)
+			this.attackers.push(new Group(team, this.collections.attackers));
 
 		this.defenders = [];
-		for (const team of defenders)
-			this.defenders.push(new Group(team, defend_collection));
 
-		console.log(`CTF_defenders: ${this.defenders.length}`)
-		console.log(`CTF_attackers: ${this.attackers.length}`)
+		for (const team of this.groups.defenders)
+			this.defenders.push(new Group(team, this.collections.defenders));
 	}
 
 	initCreeps() {
@@ -162,7 +165,6 @@ class CaptureTheFlagBasic {
 
 			if (creep.isMelee) {
 				creep.role = 'Melee';
-				creep.memory = {}
 				for (const group of this.defenders) {
 					if (group.add(creep))
 						break;
@@ -178,7 +180,6 @@ class CaptureTheFlagBasic {
 
 			if (creep.isRanged) {
 				creep.role = 'Ranged';
-				creep.memory = {}
 				for (const group of this.attackers) {
 					if (group.add(creep))
 						break;
@@ -186,6 +187,7 @@ class CaptureTheFlagBasic {
 
 				actions = [
 					new AttackAction(creep),
+					// new MovementAction(creep),
 					new MoveToGoalAction(creep),
 					new StayOutOfHarmAction(creep),
 				];
@@ -194,7 +196,6 @@ class CaptureTheFlagBasic {
 
 			if (creep.isHealer) {
 				creep.role = 'Healer';
-				creep.memory = {}
 				for (const group of this.attackers) {
 					if (group.add(creep))
 						break;
@@ -215,73 +216,65 @@ class CaptureTheFlagBasic {
 
 		this.capturePoints = [
 
-			Arena.bridges[_.random(Arena.bridges.length - 1)],
-			Arena.enemyFlag,
-		]
+			new CapturePoint(Arena.bridges[_.random(Arena.bridges.length - 1)]),
+			new CapturePoint(utils.getRoomPosition('enemyFlag', Arena.enemyFlag))
 
-		console.log('Current Capture Point:\n', this.currentCapturePoint.toString())
+			// Arena.bridges[_.random(Arena.bridges.length - 1)],
+			// utils.getRoomPosition('enemyFlag', Arena.enemyFlag),
+		];
 
-		this.initGroups()
-		this.initCreeps()
+		this.initGroups();
+		this.initCreeps();
 
-		Arena.myTower.start()
+		Arena.myTower.start();
 
+	}
+
+	update() {
+
+		this.attackers = this.cleanGroups(this.attackers);
+		this.defenders = this.cleanGroups(this.defenders);
+
+		for (const group of this.attackers)
+			this.updateGroups(group);
+
+		for (const group of this.defenders)
+			this.updateGroups(group);
+
+		const tower = Arena.myTower;
+		if (tower)
+			tower.update();
+	}
+
+	cleanGroups(array) {
+		return _.filter(array, group => group.leader !== null);
 	}
 
 	updateGroups(group) {
 
-		if (group.name === 'Attacker-1'
-			|| group.name === 'Attacker-2'
-			|| group.name === 'Attacker-3') {
+		group.alertRange = this.alertRange(group);
+		group.targetDefinition = this.targetDefinition(group);
+		group.goalDefinition = this.goalDefinition(group)
+
+		if (group.name === 'Attacker_1'
+			|| group.name === 'Attacker_2'
+			|| group.name === 'Attacker_3') {
 
 			if (group.positionReached(this.currentCapturePoint)) {
-				this.capturePoints.shift();
-				console.log('Current Capture Point', this.currentCapturePoint)
+				console.log(`Current Capture Point Reached: ${this.currentCapturePoint.toString()}`)
+				if (this.capturePoints.length > 1)
+					this.capturePoints.shift();
+				else
+					console.log(`last capture point reached`)
 			}
 		}
 
-		group.alertRange = this.alertRange(group)
-		group.targetDefinition = this.targetDefinition(group)
-		group.goalDefinition = this.goalDefinition(group)
-
-		group.update()
-	}
-
-	cleanGroups(array) {
-		return _.filter(array, group => group.leader !== null)
-	}
 
 
-	update() {
+		// console.log(`goal_0: ${utils.json(group.goalDefinition)}`)
 
-		let group = this.defenders[0]
-		let creep = group.members[0]
-
-		console.log(`creep: ${creep.id}`)
-		console.log(`travelMemory: ${utils.json(creep.memory._travel)}`)
-		console.log(`destination: ${Arena.myFlag.x} ${Arena.myFlag.y}`)
-
-		let ret = creep.travelTo(Arena.myFlag)
-
-		console.log(`ret: ${ret}`)
-
-		// this.attackers = this.cleanGroups(this.attackers)
-		// this.defenders = this.cleanGroups(this.defenders)
-		//
-		// console.log(`CTF_Basic_UPDATE`);
-		// // console.log(`CTF_defenders: ${this.defenders.length}`)
-		// // console.log(`CTF_attackers: ${this.attackers.length}`)
-		//
-		// for (const group of this.attackers)
-		// 	this.updateGroups(group)
-		//
-		// for (const group of this.defenders)
-		// 	this.updateGroups(group)
-		//
-		// const tower = Arena.myTower
-		// if (tower)
-		// 	tower.update()
+		group.update();
 	}
 }
 
-export default CaptureTheFlagBasic;
+export default CaptureTheFlagBasic

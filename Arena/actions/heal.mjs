@@ -1,7 +1,7 @@
 'use strict'
 
 import Arena from '../getArena.mjs'
-import Sorting from '../utils/sorting.mjs'
+import utils from '../utils/utils.mjs';
 import Component from '../utils/component.mjs'
 
 class HealAction extends Component {
@@ -17,7 +17,8 @@ class HealAction extends Component {
         let woundedInRange = Arena.myCreeps
             .filter(i => i.isWounded && creep.inRangeTo(i, weapon.range))
 
-        if (woundedInRange.length === 0) return
+        if (woundedInRange.length === 0)
+            return
 
         let target = creep.target
 
@@ -25,7 +26,7 @@ class HealAction extends Component {
         // or the target is not in range
         if (!target || !woundedInRange.includes(target)) {
             woundedInRange = woundedInRange
-                .sort(Sorting.byHits)
+                .sort(utils.byHits)
 
             target = woundedInRange[0]
         }
