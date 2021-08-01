@@ -3,7 +3,7 @@
 import {getRange} from '/game/utils'
 
 import Arena from '../getArena.mjs'
-import utils from '../utils/utils.mjs'
+
 import Component from '../utils/component.mjs'
 
 class AttackAction extends Component {
@@ -41,7 +41,7 @@ class AttackAction extends Component {
         // or the target is not in range
         if (!target || !enemiesInRange.includes(target)) {
             enemiesInRange = enemiesInRange
-                .sort(utils.byRangeTo(creep))
+                .sort(Util.byRangeTo(creep))
 
             target = enemiesInRange[0]
         }

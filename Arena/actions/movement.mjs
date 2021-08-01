@@ -2,7 +2,7 @@
 
 import Component from '../utils/component.mjs'
 import {getRange} from '/game/utils'
-import utils from '../utils/utils.mjs'
+
 
 class MovementAction extends Component {
     constructor(creep) {

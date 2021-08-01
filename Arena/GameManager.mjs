@@ -1,12 +1,15 @@
 'use strict'
 
-import * as constants from '/game/constants'
-import _ from '/user/lib/lodash-es/lodash'
+import _ from './lib/lodash-es/lodash'
 
-import Util from '/user/utils/utils.mjs'
-import Arena from '/user/getArena.mjs'
+import * as Game from "/game";
+import * as Arena from "/arena";
+
+import Util from './utils/utils.mjs'
+import Arena from './getArena.mjs'
 import Cache from './Cache.mjs'
 import Stats from './utils/stats.mjs'
+import {red, green, yellow} from './utils/color.mjs';
 import Traveller from './utils/Traveller.mjs';
 
 
@@ -16,8 +19,10 @@ class GameManager {
 				global[globalKey] = constants[globalKey]
 
 		global._ = _
-
 		global.Strategy = Arena.strategy
+		global.Util = Util
+		global.red = red
+
 
 		this.modules = [Cache, Arena, Strategy, Stats]
 
@@ -29,14 +34,12 @@ class GameManager {
 	loop() {
 		if (this.isFirstTick) {
 			for (const module of this.modules) {
-				// console.log(`module: ${module.className}`)
 				if (_.isFunction(module.start)) {
 					module.start()
 				}
 			}
 		} else {
 			for (const module of this.modules) {
-				// console.log(`module: ${module.className}`)
 				if (_.isFunction(module.update)) {
 					module.update()
 				}

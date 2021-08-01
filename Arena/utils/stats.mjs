@@ -1,8 +1,7 @@
 'use strict'
 
 import Arena from '../getArena.mjs'
-import utils from './utils.mjs'
-import RoomPosition from '../roomPosition.mjs';
+
 
 class Stats {
 
@@ -24,14 +23,12 @@ class Stats {
     }
 
     displayGroups(group) {
-        // console.log(`CCP: ${utils.json(Strategy.currentCapturePoint)}`)
-        console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
         const members = group.members
         if (members.length > 0) {
             console.log(`group: ${group.name} leader: [${group.leader.id}, ${group.leader.role}] members: ${members.length}`)
             for (const creep of members) {
                 console.log(`creepId: ${creep.id} role: ${creep.role}`)
-                console.log(`travelData: ${utils.json(creep.travel)}`)
+                console.log(`travelData: ${Util.json(creep.travel)}`)
             }
         }
         else
@@ -42,11 +39,13 @@ class Stats {
 
         if(this.timeForOutput) {
 
-            for (const group of Strategy.attackers)
-                this.displayGroups(group)
+            console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
 
-            for (const group of Strategy.defenders)
-                this.displayGroups(group)
+            // for (const group of Strategy.attackers)
+            //     this.displayGroups(group)
+            //
+            // for (const group of Strategy.defenders)
+            //     this.displayGroups(group)
 
             console.log('friends', Arena.myCreeps.length)
             console.log('enemies', Arena.enemyCreeps.length)

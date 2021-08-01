@@ -28,9 +28,17 @@ class Arena {
 		return arenaInfo.season;
 	}
 
-	// get strategy() {
-	// 	throw 'Not implemented';
-	// }
+	get ticksLimit() {
+		return arenaInfo.ticksLimit;
+	}
+
+	get cpuTimeLimit() {
+		return arenaInfo.cpuTimeLimit;
+	}
+
+	get cpuTimeLimitFirstTick() {
+		return arenaInfo.cpuTimeLimitFirstTick;
+	}
 
 	get towers() {
 		return getObjectsByPrototype(StructureTower);

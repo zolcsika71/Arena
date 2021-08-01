@@ -8,7 +8,7 @@ import CaptureTheFlagBasic from '../strategies/CTF_basic.mjs';
 import CaptureTheFlagAdvanced from '../strategies/CTF_advanced.mjs';
 import RoomPosition from '../roomPosition.mjs'
 
-import * as utils from '/user/utils/utils.mjs';
+
 
 class CaptureTheFlagArena extends Arena {
 

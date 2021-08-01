@@ -1,14 +1,12 @@
-import {getRange} from '/game/utils'
+'use strict';
+
+
+import {getRange} from '/game/utils';
 import RoomPosition from '../roomPosition.mjs';
 
 
-class Util {
-	static brush = {
-		death: {color: 'black', 'font-weight': 'bold'},
-		birth: '#e6de99',
-		error: '#e79da7',
-		system: {color: '#999', 'font-size': '10px'},
-	};
+class Utils {
+
 
 	json(x) {
 		return JSON.stringify(x, null, 2);
@@ -42,46 +40,59 @@ class Util {
 
 	getRoomPosition(name, target) {
 		if (target instanceof RoomPosition)
-			return target
+			return target;
 		else
-			return new RoomPosition(name, {x: target.x, y: target.y})
+			return new RoomPosition(name, {x: target.x, y: target.y});
 	};
 
-	isObj = function (val) {
-		if (val === null)
-			return false;
-		return typeof val === 'function' || typeof val === 'object';
-	};
+	style(options = []) {
 
-	paint(style, text) {
-		if (this.isObj(style)) {
-			let css = '',
-				format = key => css += key + ':' + style[key] + ';';
-			_.forEach(Object.keys(style), format);
-			return ('<font style="' + css + '">' + text + '</font>');
+		let style = {
+			default: 0,
+			red: 31,
+			green: 32,
+			yellow: 33,
+			blue: 34,
+			magenta: 35,
+			cyan: 36,
+			white: 37,
+			bold: 1,
+		};
+
+		let escapeSequence = '',
+			optionsLength = options.length;
+
+		for (let i = 0; i < optionsLength; i++) {
+			let option = options[i];
+			i === optionsLength - 1 ?
+				escapeSequence = escapeSequence + `${style[option]}m` :
+				escapeSequence = escapeSequence + `${style[option]};`
 		}
-		if (style)
-			return ('<font style="color:' + style + '">' + text + '</font>');
-		else return text;
-	};
+		return escapeSequence;
 
-	logSystem(message) {
-		console.log(`${this.paint(Util.brush.system, message)}`);
+	}
+
+	log(title, messages) {
+		let logArray = [title]
+		for (let message of messages) {
+			logArray.push(`\x1B[${this.style(message.style)} ${message.text}\x1B[0m`)
+		}
+		console.log(...logArray);
 	}
 
 	byRangeTo(position, reverse = false) {
-		reverse === false ? reverse = 1 : reverse = -1
-		return (a, b) => (getRange(a, position) - getRange(b, position)) * reverse
+		reverse === false ? reverse = 1 : reverse = -1;
+		return (a, b) => (getRange(a, position) - getRange(b, position)) * reverse;
 	}
 
 	byHits(reverse = false) {
-		reverse === false ? reverse = 1 : reverse = -1
-		return (a, b) => (a.hits - b.hits) * reverse
+		reverse === false ? reverse = 1 : reverse = -1;
+		return (a, b) => (a.hits - b.hits) * reverse;
 	}
 
 }
 
 
-export default new Util();
+export default new Utils();
 
 

@@ -3,7 +3,7 @@
 import Cache from './Cache.mjs';
 import RoomPosition from './roomPosition.mjs';
 import Arena from './getArena.mjs';
-import utils from './utils/utils.mjs';
+
 
 class Group {
 	constructor(name, collection) {
@@ -33,7 +33,7 @@ class Group {
 	get wounded() {
 		return this.members
 		.filter(i => i.isWounded)
-		.sort(utils.byHits());
+		.sort(Util.byHits());
 	}
 
 	get isSpreadTooHigh() {
@@ -46,7 +46,7 @@ class Group {
 
 	get spread() {
 		const leader = this.leader;
-		const sorted = this.members.sort(utils.byRangeTo(leader, true));
+		const sorted = this.members.sort(Util.byRangeTo(leader, true));
 		return leader.getRangeTo(sorted[0]);
 	}
 
@@ -121,7 +121,7 @@ class Group {
 				} else
 					creep.goal = new RoomPosition('creep', creep);
 			} else {
-				creep.goal = goal[creep.role.toString()];
+				creep.goal = goal[creep.role.toString()].position;
 			}
 
 			creep.update();
@@ -199,12 +199,13 @@ class Group {
 	}
 
 	positionReached(position) {
+		const members = this.members;
 		// if (this.goalDefinition.length === 1)
 		// 	return this.members.some(i => i.standsOn(position))
 		// else
-		// 	return this.members.some(i => i.standsNear(position));
+		return members.some(i => i.standsNear(position));
 
-		return this.leader.standsOn(position)
+		// return this.leader.standsOn(position)
 
 		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
 

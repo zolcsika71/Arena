@@ -1,7 +1,7 @@
 'use strict'
 
 import Arena from '../getArena.mjs'
-import utils from '../utils/utils.mjs';
+
 import Component from '../utils/component.mjs'
 
 class HealAction extends Component {
@@ -26,7 +26,7 @@ class HealAction extends Component {
         // or the target is not in range
         if (!target || !woundedInRange.includes(target)) {
             woundedInRange = woundedInRange
-                .sort(utils.byHits)
+                .sort(Util.byHits)
 
             target = woundedInRange[0]
         }

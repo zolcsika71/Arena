@@ -13,9 +13,7 @@ import MeleeWeapon from '../weapon/meleeWeapon.mjs'
 import RangedWeapon from '../weapon/rangedWeapon.mjs'
 
 import Arena from '../getArena.mjs'
-import utils from '../utils/utils.mjs';
 
-// import Traveller from '../utils/Traveller.mjs';
 
 const prototype = Creep.prototype;
 
@@ -192,22 +190,13 @@ prototype.standsOn = function (position) {
 };
 
 prototype.standsNear = function (position) {
-	let target = utils.getRoomPosition('target,', position)
-	return target.isNearTo(this)
-}
-
+	let target = Util.getRoomPosition('target,', position)
+	return target.isNearTo(this);
+};
 
 prototype.inRangeTo = function (target, range) {
 	return this.getRangeTo(target) <= range;
 };
-
-// prototype.getDirectionTo = function (target) {
-// 	return getDirection(target.x - this.x, target.y - this.y)
-// }
-//
-// prototype.isNearTo = function (target) {
-// 	return this.inRangeTo(target, 1)
-// }
 
 
 export default Creep;
