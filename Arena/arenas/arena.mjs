@@ -1,10 +1,14 @@
 'use strict';
 
 import {arenaInfo} from '/game';
-import {getTicks, getObjectsByPrototype} from '/game/utils';
-
-import Creep from '/user/prototypes/creep';
+// import {getTicks, getObjectsByPrototype} from '/game/utils';
+//
+// import Creep from '/user/prototypes/creep';
 import StructureTower from '/user/prototypes/structureTower';
+
+// import Arena from "/arena";
+
+// let Utils = global.Game.getAll('Utils')
 
 class Arena {
 
@@ -40,12 +44,8 @@ class Arena {
 		return arenaInfo.cpuTimeLimitFirstTick;
 	}
 
-	get towers() {
-		return getObjectsByPrototype(StructureTower);
-	}
-
 	get creeps() {
-		return getObjectsByPrototype(Creep);
+		return Game.getObjectsByPrototype(Game.Creep);
 	}
 
 	get myCreeps() {

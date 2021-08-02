@@ -1,5 +1,7 @@
 'use strict';
 
+// Object.defineProperty(exports, "__esModule", { value: true });
+
 import RoomPosition from '../roomPosition.mjs';
 import Arena from '../getArena.mjs';
 
@@ -114,7 +116,7 @@ class Traveller {
 
 			let ret = this.findTravelPath(creep, destination, options);
 
-			// console.log(`path: ${utils.json(ret)}`)
+			// console.log(`path: ${Utils.json(ret)}`)
 
 			if (ret.incomplete) {
 				// uncommenting this is a great way to diagnose creep behavior issues
@@ -354,10 +356,6 @@ class Traveller {
 	}
 
 }
-
-// Traveller.structureMatrixCache = {};
-// Traveller.creepMatrixCache = {};
-// Traveller.mapMatrixCache = {};
 
 Creep.prototype.travelTo = function (destination, options) {
 	return Traveller.travelTo(this, destination, options);

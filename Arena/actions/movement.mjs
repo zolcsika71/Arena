@@ -15,8 +15,8 @@ class MovementAction extends Component {
         const target = creep.target
         const goal = creep.goal
 
-        // console.log(`target: ${utils.json(target)}`)
-        // console.log(`goal: ${utils.json(goal)}`)
+        // console.log(`target: ${Utils.json(target)}`)
+        // console.log(`goal: ${Utils.json(goal)}`)
 
         if (target) {
             // behaviour: distance to target
@@ -50,7 +50,7 @@ class MovementAction extends Component {
         } else {
             let data = {}
             let ret = creep.travelTo(goal, {returnData: data, range: 1})
-            // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
+            // console.log(`travelTo: ${Utils.translateErrorCode(ret)}`)
             // if (data.path) {
             //     console.log(`creepId: ${creep.id} path.length: ${data.path.length}\n`);
             // }

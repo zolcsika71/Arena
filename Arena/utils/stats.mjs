@@ -15,7 +15,7 @@ class Stats {
 
     start() {
         console.log(`first tick:`)
-        // console.log(`CCP: ${utils.json(Strategy.currentCapturePoint)}`)
+        // console.log(`CCP: ${Utils.json(Strategy.currentCapturePoint)}`)
         console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
         console.log(`Arena: ${Strategy.className}`)
         console.log(`attackers: ${Strategy.attackers.length}`)

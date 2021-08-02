@@ -7,7 +7,6 @@ import RoomPosition from '../roomPosition.mjs';
 
 class Utils {
 
-
 	json(x) {
 		return JSON.stringify(x, null, 2);
 	}
@@ -89,6 +88,11 @@ class Utils {
 		reverse === false ? reverse = 1 : reverse = -1;
 		return (a, b) => (a.hits - b.hits) * reverse;
 	}
+	isObj (val) {
+		if (val === null)
+			return false;
+		return typeof val === 'function' || typeof val === 'object';
+	};
 
 }
 

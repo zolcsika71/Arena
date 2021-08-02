@@ -1,21 +1,25 @@
 'use strict';
 
-import {arenaInfo} from '/game';
 
 import CaptureTheFlagArena from '/user/arenas/CTF_Arena.mjs';
+import utils from './utils/utils.mjs';
 
-let Arena;
+// console.log(`arenaInfo: ${Utils.json(Game)}`)
+//
+// let Arena;
+//
+// switch (Game.arenaInfo.name) {
+// 	case 'Capture the Flag':
+// 		Arena = CaptureTheFlagArena;
+// 		break;
+//
+// 	case 'Spawn and Swamp':
+// 		throw `unsupported arena: ${Game.arenaInfo.name}`;
+//
+// 	default:
+// 		throw `unsupported arena: ${Game.arenaInfo.name}`;
+// }
+//
+// export default new Arena();
 
-switch (arenaInfo.name) {
-	case 'Capture the Flag':
-		Arena = CaptureTheFlagArena;
-		break;
-
-	case 'Spawn and Swamp':
-		throw `unsupported arena: ${arenaInfo.name}`;
-
-	default:
-		throw `unsupported arena: ${arenaInfo.name}`;
-}
-
-export default new Arena();
+export default new CaptureTheFlagArena()

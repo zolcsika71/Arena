@@ -1,7 +1,7 @@
 'use strict';
 
 import {getObjectsByPrototype} from '/game/utils';
-import {Flag} from '/arena';
+import {Flag, BodyPart} from '/arena';
 
 import Arena from './arena.mjs';
 import CaptureTheFlagBasic from '../strategies/CTF_basic.mjs';
@@ -39,6 +39,7 @@ class CaptureTheFlagArena extends Arena {
 	get gatherPoints() {
 
 	}
+
 	get flags() {
 		return getObjectsByPrototype(Flag);
 	}
@@ -49,6 +50,10 @@ class CaptureTheFlagArena extends Arena {
 
 	get enemyFlag() {
 		return this.flags.find(i => !i.my);
+	}
+
+	get towers() {
+		return getObjectsByPrototype(StructureTower);
 	}
 
 	get myTower() {

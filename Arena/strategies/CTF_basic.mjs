@@ -1,8 +1,10 @@
 'use strict';
 
-import {getRange} from '/game/utils';
+// import {getRange} from '/game/utils';
 
 import Arena from '../getArena.mjs';
+import * as Game from "/game";
+
 import Group from '../group.mjs';
 import CapturePoint from '../CapturePoints.mjs';
 
@@ -12,6 +14,8 @@ import LastStandAction from '../actions/lastStand.mjs';
 import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
+
+import util from '../utils/utils.mjs';
 
 
 class CaptureTheFlagBasic {
@@ -54,7 +58,7 @@ class CaptureTheFlagBasic {
 		if (Arena.time > 1) {
 			// console.log(`capturePoint: ${capturePoint.x} ${capturePoint.y}`);
 
-			let neighbours = capturePoint.position.getAdjacentCells();
+			// let neighbours = capturePoint.position.getAdjacentCells();
 			// 	let message = []
 			// 	let costColor
 			//
@@ -80,8 +84,8 @@ class CaptureTheFlagBasic {
 			// 		message = [];
 			// 	}
 			// }
-			for (const neighbour of neighbours)
-				console.log(`neighbour: ${red(neighbour.toString())}`)
+			// for (const neighbour of neighbours)
+			// 	console.log(`neighbour: ${red(neighbour.toString())}`)
 
 			return capturePoint
 
@@ -248,10 +252,10 @@ class CaptureTheFlagBasic {
 		this.capturePoints = [
 
 			new CapturePoint(Arena.bridges[_.random(Arena.bridges.length - 1)]),
-			new CapturePoint(Util.getRoomPosition('enemyFlag', Arena.enemyFlag))
+			new CapturePoint(util.getRoomPosition('enemyFlag', Arena.enemyFlag))
 
 			// Arena.bridges[_.random(Arena.bridges.length - 1)],
-			// utils.getRoomPosition('enemyFlag', Arena.enemyFlag),
+			// Utils.getRoomPosition('enemyFlag', Arena.enemyFlag),
 		];
 
 		this.initGroups();
@@ -302,7 +306,7 @@ class CaptureTheFlagBasic {
 
 
 
-		// console.log(`goal_0: ${utils.json(group.goalDefinition)}`)
+		// console.log(`goal_0: ${Utils.json(group.goalDefinition)}`)
 
 		group.update();
 	}
