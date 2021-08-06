@@ -16,10 +16,10 @@ class Stats {
     start() {
         console.log(`first tick:`)
         // console.log(`CCP: ${Utils.json(Strategy.currentCapturePoint)}`)
-        console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
-        console.log(`Arena: ${Strategy.className}`)
-        console.log(`attackers: ${Strategy.attackers.length}`)
-        console.log(`defenders: ${Strategy.defenders.length}`)
+        console.log(`Current Capture Point: ${Game.Strategy.currentCapturePoint.position.toString()}`)
+        console.log(`Arena: ${Game.Strategy.className}`)
+        console.log(`attackers: ${Game.Strategy.attackers.length}`)
+        console.log(`defenders: ${Game.Strategy.defenders.length}`)
     }
 
     displayGroups(group) {

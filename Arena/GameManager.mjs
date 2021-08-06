@@ -14,8 +14,11 @@ import Utils from './utils/utils.mjs';
 global._ = _;
 
 global.Game = {};
-global.Game.Strategy = Arena.strategy;
-global.Game.arenaInfo = arenaInfo;
+global.Game.Strategy = {}
+global.Game.arenaInfo = {}
+Object.assign(global.Game.Strategy, Arena.strategy);
+Object.assign(global.Game.arenaInfo, arenaInfo);
+
 
 
 import Traveller from './utils/Traveller.mjs';
@@ -30,20 +33,19 @@ class GameManager {
 
 	constructor() {
 		this.modules = [Cache, Arena, Game.Strategy, Stats];
-		this.set()
 	}
 
-	set() {
-		[utils, prototypes, constants, pathFinder, arena]
+	setGame() {
+		console.log(`set is running`);
+		[utils, prototypes, pathFinder, arena]
 		.forEach(module => {
-			console.dir(module);
+			console.log(module);
 			Object.keys(module).forEach(property => {
 				// TODO check if isObj?
 				console.log(`property: ${property.toString()}`)
-				if (Utils.isObj(property)) {
-					global.Game = Object.assign({}, property);
-				}
-				global.Game[property] = module[property]
+				// global.Game = Object.assign({}, property);
+				Object.assign(global.Game, property);
+
 			})
 		})
 	}
@@ -54,23 +56,24 @@ class GameManager {
 
 	loop() {
 
-		// console.log(`Game: ${Utils.json(global.Game)}`)
+		console.log(`Game: ${Utils.json(global.Game)}`)
 		// let Utils = Game.getAll('creep')
 		// console.log(`Utils: ${Utils.json(Utils)}`)
 		// Game.display
 
 
-		// if (this.isFirstTick) {
-		// 	for (const module of this.modules) {
-		// 		if (_.isFunction(module.start))
-		// 			module.start();
-		// 	}
-		// } else {
-		// 	for (const module of this.modules) {
-		// 		if (_.isFunction(module.update))
-		// 			module.update();
-		// 	}
-		// }
+		if (this.isFirstTick) {
+			this.setGame()
+			for (const module of this.modules) {
+				if (_.isFunction(module.start))
+					module.start();
+			}
+		} else {
+			for (const module of this.modules) {
+				if (_.isFunction(module.update))
+					module.update();
+			}
+		}
 	}
 
 
