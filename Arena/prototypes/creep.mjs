@@ -1,21 +1,13 @@
 'use strict';
 
-import {getDirection} from '/game/utils';
-
-import {searchPath} from '/game/path-finder';
-
-import {Creep} from '/game/prototypes';
 
 import RoomPosition from '../roomPosition.mjs';
-
-import HealerWeapon from '../weapon/healerWeapon.mjs'
-import MeleeWeapon from '../weapon/meleeWeapon.mjs'
-import RangedWeapon from '../weapon/rangedWeapon.mjs'
-
-import Arena from '../getArena.mjs'
+import HealerWeapon from '../weapon/healerWeapon.mjs';
+import MeleeWeapon from '../weapon/meleeWeapon.mjs';
+import RangedWeapon from '../weapon/rangedWeapon.mjs';
 
 
-const prototype = Creep.prototype;
+const prototype = Game.Creep.prototype;
 
 Object.defineProperties(prototype, {
 	'isDead': {
@@ -32,31 +24,31 @@ Object.defineProperties(prototype, {
 	},
 	'isMelee': {
 		get: function () {
-			return this.body.some(i => i.type === ATTACK);
+			return this.body.some(i => i.type === Game.ATTACK);
 		},
 		configurable: true,
 	},
 	'isRanged': {
 		get: function () {
-			return this.body.some(i => i.type === RANGED_ATTACK);
+			return this.body.some(i => i.type === Game.RANGED_ATTACK);
 		},
 		configurable: true,
 	},
 	'isHealer': {
 		get: function () {
-			return this.body.some(i => i.type === HEAL);
+			return this.body.some(i => i.type === Game.HEAL);
 		},
 		configurable: true,
 	},
 	'canMove': {
 		get: function () {
-			return this.body.some(i => i.type === MOVE && i.hits > 0);
+			return this.body.some(i => i.type === Game.MOVE && i.hits > 0);
 		},
 		configurable: true,
 	},
 	'canAttack': {
 		get: function () {
-			return this.body.some(i => (i.type === ATTACK || i.type === RANGED_ATTACK) && i.hits > 0);
+			return this.body.some(i => (i.type === Game.ATTACK || i.type === Game.RANGED_ATTACK) && i.hits > 0);
 		},
 		configurable: true,
 	},
@@ -84,55 +76,55 @@ Object.defineProperties(prototype, {
 	},
 	'bodyParts': {
 		get: function () {
-			let bodyParts = {}
+			let bodyParts = {};
 			for (let bodyPart of this.body) {
 				switch (bodyPart.type) {
 					case MOVE:
 						if (!bodyParts.move)
-							bodyParts.move = 1
+							bodyParts.move = 1;
 						else
-							bodyParts.move += 1
-						break
+							bodyParts.move += 1;
+						break;
 					case WORK:
 						if (!bodyParts.work)
-							bodyParts.work = 1
+							bodyParts.work = 1;
 						else
-							bodyParts.work += 1
-						break
+							bodyParts.work += 1;
+						break;
 					case CARRY:
 						if (!bodyParts.carry)
-							bodyParts.carry = 1
+							bodyParts.carry = 1;
 						else
-							bodyParts.carry += 1
-						break
+							bodyParts.carry += 1;
+						break;
 					case ATTACK:
 						if (!bodyParts.attack)
-							bodyParts.attack = 1
+							bodyParts.attack = 1;
 						else
-							bodyParts.attack += 1
-						break
+							bodyParts.attack += 1;
+						break;
 					case RANGED_ATTACK:
 						if (!bodyParts.ranged_attack)
-							bodyParts.ranged_attack = 1
+							bodyParts.ranged_attack = 1;
 						else
-							bodyParts.ranged_attack += 1
-						break
+							bodyParts.ranged_attack += 1;
+						break;
 					case HEAL:
 						if (!bodyParts.heal)
-							bodyParts.heal = 1
+							bodyParts.heal = 1;
 						else
-							bodyParts.heal += 1
-						break
+							bodyParts.heal += 1;
+						break;
 					case TOUGH:
 						if (!bodyParts.tough)
-							bodyParts.tough = 1
+							bodyParts.tough = 1;
 						else
-							bodyParts.tough += 1
-						break
+							bodyParts.tough += 1;
+						break;
 				}
 			}
 
-			return bodyParts
+			return bodyParts;
 		},
 		configurable: true,
 	},
@@ -140,11 +132,11 @@ Object.defineProperties(prototype, {
 		get: function () {
 			return new RoomPosition(this.id, {
 				x: this.x,
-				y: this.y
-			})
+				y: this.y,
+			});
 		},
 		configurable: true,
-	}
+	},
 });
 
 prototype.toString = function () {
@@ -152,7 +144,7 @@ prototype.toString = function () {
 	return `[${faction}, {id: ${this.id}, role: ${this.role}, x: ${this.x}, y: ${this.y}}]`;
 };
 
-prototype.start = function (actions=[]) {
+prototype.start = function (actions = []) {
 	this.actions = actions;
 	for (const action of actions) {
 		action.start();
@@ -175,10 +167,10 @@ prototype.flee = function (targets, range) {
 		flee: true,
 	};
 
-	let result = searchPath(origin, goals, options);
+	let result = Game.searchPath(origin, goals, options);
 
 	if (result.path.length > 0) {
-		let direction = getDirection(result.path[0].x - this.x, result.path[0].y - this.y);
+		let direction = Game.getDirection(result.path[0].x - this.x, result.path[0].y - this.y);
 		this.move(direction);
 	}
 };
@@ -190,13 +182,13 @@ prototype.standsOn = function (position) {
 };
 
 prototype.standsNear = function (position) {
-	let target = Util.getRoomPosition('target,', position)
+	let target = Util.getRoomPosition('target,', position);
 	return target.isNearTo(this);
 };
 
 prototype.inRangeTo = function (target, range) {
-	return this.getRangeTo(target) <= range;
+	return Game.getRange(this, target) <= range;
 };
 
 
-export default Creep;
+export default Game.Creep;

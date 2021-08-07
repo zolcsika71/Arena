@@ -1,8 +1,8 @@
 'use strict';
 
-import Cache from './Cache.mjs';
+// import Cache from './Cache.mjs';
 import RoomPosition from './roomPosition.mjs';
-import Arena from './getArena.mjs';
+// import Arena from './getArena.mjs';
 
 
 class Group {
@@ -47,7 +47,8 @@ class Group {
 	get spread() {
 		const leader = this.leader;
 		const sorted = this.members.sort(Util.byRangeTo(leader, true));
-		return leader.getRangeTo(sorted[0]);
+		// return leader.getRangeTo(sorted[0]);
+		return Game.getRange(leader, sorted[0]);
 	}
 
 	full(role) {

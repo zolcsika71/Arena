@@ -1,8 +1,6 @@
 'use strict'
 
-import {getRange} from '/game/utils'
 
-import Arena from '../getArena.mjs'
 
 import Component from '../utils/component.mjs'
 

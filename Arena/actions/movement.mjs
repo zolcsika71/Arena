@@ -1,7 +1,6 @@
 'use strict'
 
 import Component from '../utils/component.mjs'
-import {getRange} from '/game/utils'
 
 
 class MovementAction extends Component {
@@ -15,14 +14,14 @@ class MovementAction extends Component {
         const target = creep.target
         const goal = creep.goal
 
-        // console.log(`target: ${Utils.json(target)}`)
-        // console.log(`goal: ${Utils.json(goal)}`)
+        // console.log(`target: ${utils.json(target)}`)
+        // console.log(`goal: ${utils.json(goal)}`)
 
         if (target) {
             // behaviour: distance to target
             if (creep.inRangeTo(target, creep.weapon.range)) {
                 // should creep move closer than attackRange to the target?
-                if (this.creep.role === 'Ranged' && getRange(this, target) > 2) {
+                if (this.creep.role === 'Ranged' && Game.getRange(this, target) > 2) {
                     let data = {}
                     creep.travelTo(target, {returnData: data})
                     console.log(`Creep ${creep.id} => chasing Creep ${target.id}`)
@@ -50,7 +49,7 @@ class MovementAction extends Component {
         } else {
             let data = {}
             let ret = creep.travelTo(goal, {returnData: data, range: 1})
-            // console.log(`travelTo: ${Utils.translateErrorCode(ret)}`)
+            // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
             // if (data.path) {
             //     console.log(`creepId: ${creep.id} path.length: ${data.path.length}\n`);
             // }

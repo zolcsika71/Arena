@@ -1,6 +1,6 @@
 'use strict'
 
-import Arena from '../getArena.mjs'
+// import Arena from '../getArena.mjs'
 
 import Component from '../utils/component.mjs'
 

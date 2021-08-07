@@ -1,20 +1,16 @@
 'use strict';
 
-import {getObjectsByPrototype} from '/game/utils';
-import {Flag, BodyPart} from '/arena';
-
-import Arena from './arena.mjs';
+import myArena from './myArena.mjs';
 import CaptureTheFlagBasic from '../strategies/CTF_basic.mjs';
 import CaptureTheFlagAdvanced from '../strategies/CTF_advanced.mjs';
-import RoomPosition from '../roomPosition.mjs'
+import RoomPosition from '../roomPosition.mjs';
 
 
-
-class CaptureTheFlagArena extends Arena {
+class CaptureTheFlagArena extends myArena {
 
 	constructor() {
 		super();
-		this._bridges = null
+		this._bridges = null;
 	}
 
 	get strategy() {
@@ -28,12 +24,12 @@ class CaptureTheFlagArena extends Arena {
 	get bridges() {
 		if (!this._bridges) {
 			this._bridges = [
-				new RoomPosition('Bridge-1', { x: 35, y: 65 }),
-				new RoomPosition('Bridge-2',{ x: 65, y: 35 }),
-			]
+				new RoomPosition('Bridge-1', {x: 35, y: 65}),
+				new RoomPosition('Bridge-2', {x: 65, y: 35}),
+			];
 		}
 
-		return this._bridges
+		return this._bridges;
 	}
 
 	get gatherPoints() {
@@ -41,7 +37,7 @@ class CaptureTheFlagArena extends Arena {
 	}
 
 	get flags() {
-		return getObjectsByPrototype(Flag);
+		return Game.getAll('Flag');
 	}
 
 	get myFlag() {
@@ -50,10 +46,6 @@ class CaptureTheFlagArena extends Arena {
 
 	get enemyFlag() {
 		return this.flags.find(i => !i.my);
-	}
-
-	get towers() {
-		return getObjectsByPrototype(StructureTower);
 	}
 
 	get myTower() {

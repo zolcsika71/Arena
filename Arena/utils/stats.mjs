@@ -15,11 +15,11 @@ class Stats {
 
     start() {
         console.log(`first tick:`)
-        // console.log(`CCP: ${Utils.json(Strategy.currentCapturePoint)}`)
-        console.log(`Current Capture Point: ${Game.Strategy.currentCapturePoint.position.toString()}`)
-        console.log(`Arena: ${Game.Strategy.className}`)
-        console.log(`attackers: ${Game.Strategy.attackers.length}`)
-        console.log(`defenders: ${Game.Strategy.defenders.length}`)
+        // console.log(`CCP: ${utils.json(Strategy.currentCapturePoint)}`)
+        // console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
+        // console.log(`myArena: ${Strategy.className}`)
+        // console.log(`attackers: ${Strategy.attackers.length}`)
+        // console.log(`defenders: ${Strategy.defenders.length}`)
     }
 
     displayGroups(group) {
@@ -38,6 +38,8 @@ class Stats {
     update() {
 
         if(this.timeForOutput) {
+
+            console.log(`tick: ${Game.getTicks()}`)
 
             console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
 

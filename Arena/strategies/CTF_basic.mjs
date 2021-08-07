@@ -1,10 +1,5 @@
 'use strict';
 
-// import {getRange} from '/game/utils';
-
-import Arena from '../getArena.mjs';
-import * as Game from "/game";
-
 import Group from '../group.mjs';
 import CapturePoint from '../CapturePoints.mjs';
 
@@ -15,8 +10,7 @@ import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
 
-import util from '../utils/utils.mjs';
-
+import {red, green, yellow} from '../utils/color.mjs';
 
 class CaptureTheFlagBasic {
 
@@ -58,7 +52,7 @@ class CaptureTheFlagBasic {
 		if (Arena.time > 1) {
 			// console.log(`capturePoint: ${capturePoint.x} ${capturePoint.y}`);
 
-			// let neighbours = capturePoint.position.getAdjacentCells();
+			let neighbours = capturePoint.position.getAdjacentCells();
 			// 	let message = []
 			// 	let costColor
 			//
@@ -96,7 +90,6 @@ class CaptureTheFlagBasic {
 
 	findMeleeTarget(group) {
 
-
 		if (group.leader === null)
 			return null;
 
@@ -121,7 +114,7 @@ class CaptureTheFlagBasic {
 		const alertRange = this.alertRange(group);
 		const targets = Arena.enemyCreeps
 		.filter(i => i.inRangeTo(position, alertRange))
-		.sort((a, b) => a.hits === b.hits ? getRange(a, position) - getRange(b, position) : a.hits - b.hits);
+		.sort((a, b) => a.hits === b.hits ? Game.getRange(a, position) - Game.getRange(b, position) : a.hits - b.hits);
 
 		if (targets.length === 0)
 			return null;
@@ -191,7 +184,9 @@ class CaptureTheFlagBasic {
 	}
 
 	initCreeps() {
-		for (const creep of Arena.myCreeps) {
+		for (let creep of Arena.myCreeps) {
+
+			// console.log(`creep: ${Util.json(creep)}`)
 
 			let actions;
 
@@ -252,11 +247,14 @@ class CaptureTheFlagBasic {
 		this.capturePoints = [
 
 			new CapturePoint(Arena.bridges[_.random(Arena.bridges.length - 1)]),
-			new CapturePoint(util.getRoomPosition('enemyFlag', Arena.enemyFlag))
+			new CapturePoint(Util.getRoomPosition('enemyFlag', Arena.enemyFlag))
 
-			// Arena.bridges[_.random(Arena.bridges.length - 1)],
-			// Utils.getRoomPosition('enemyFlag', Arena.enemyFlag),
+			// myArena.bridges[_.random(myArena.bridges.length - 1)],
+			// utils.getRoomPosition('enemyFlag', myArena.enemyFlag),
 		];
+
+		// console.log(`myCreeps: ${Util.json(myArena.myCreeps)}`)
+		// console.log(`Game: ${Game.OK}`)
 
 		this.initGroups();
 		this.initCreeps();
@@ -306,7 +304,7 @@ class CaptureTheFlagBasic {
 
 
 
-		// console.log(`goal_0: ${Utils.json(group.goalDefinition)}`)
+		// console.log(`goal_0: ${utils.json(group.goalDefinition)}`)
 
 		group.update();
 	}

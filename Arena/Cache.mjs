@@ -22,4 +22,6 @@ class Cache {
 	}
 }
 
-export default new Cache()
+global.Cache = new Cache();
+
+export default global.Cache;

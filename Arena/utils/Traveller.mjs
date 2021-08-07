@@ -1,15 +1,6 @@
 'use strict';
 
-// Object.defineProperty(exports, "__esModule", { value: true });
-
 import RoomPosition from '../roomPosition.mjs';
-import Arena from '../getArena.mjs';
-
-
-import {CostMatrix, searchPath} from '/game/path-finder';
-import {getObjectsByPrototype, getTerrainAt} from '/game/utils';
-import {ERR_BUSY, ERR_INVALID_ARGS, ERR_NO_PATH, ERR_TIRED, OK, TERRAIN_WALL, TERRAIN_SWAMP} from '/game/constants';
-import {ConstructionSite, Creep, Structure, StructureContainer, StructureRampart, StructureRoad} from '/game/prototypes';
 
 const DEFAULT_MAXOPS = 50000;
 const DEFAULT_STUCK_VALUE = 2;
@@ -37,25 +28,23 @@ class Traveller {
 			movingTarget: false,
 			rePath: false,
 			travelData: [],
-			freshMatrix: false
+			freshMatrix: false,
 		});
 
 		if (options.getMatrix)
-			return Traveller.findTravelPath(origin, destination, options)
+			return Traveller.findTravelPath(origin, destination, options);
 
 		if (!destination)
-			return ERR_INVALID_ARGS;
+			return Game.ERR_INVALID_ARGS;
 
 		if (creep.fatigue > 0)
-			return ERR_TIRED;
+			return Game.ERR_TIRED;
 
-		// if (this.sameCoord(creep, destination))
-		// 	return OK;
-		destination = Util.getRoomPosition('destination', destination)
-		let rangeToDestination = creep.getRangeTo(destination);
+		destination = Util.getRoomPosition('destination', destination);
+		let rangeToDestination = Game.getRange(creep, destination)
 
 		if (options.range && rangeToDestination <= options.range)
-			return OK;
+			return Game.OK;
 		else if (rangeToDestination <= 1) {
 			if (rangeToDestination === 1 && !options.range) {
 				let direction = creep.position.getDirectionTo(destination);
@@ -66,7 +55,7 @@ class Traveller {
 
 				return creep.move(direction);
 			}
-			return OK;
+			return Game.OK;
 		}
 		// initialize data object
 		if (!creep.travel)
@@ -111,12 +100,12 @@ class Traveller {
 		if (!travelData.path) {
 			newPath = true;
 			if (creep.spawning)
-				return ERR_BUSY;
+				return Game.ERR_BUSY;
 			state.destination = destination;
 
 			let ret = this.findTravelPath(creep, destination, options);
 
-			// console.log(`path: ${Utils.json(ret)}`)
+			// console.log(`path: ${utils.json(ret)}`)
 
 			if (ret.incomplete) {
 				// uncommenting this is a great way to diagnose creep behavior issues
@@ -124,7 +113,7 @@ class Traveller {
 			}
 			if (options.returnData) {
 				options.returnData.pathfinderReturn = ret;
-				options.returnData.costMatrix = ret.costMatrix
+				options.returnData.costMatrix = ret.costMatrix;
 			}
 
 			travelData.path = Traveller.serializePath(creep.position, ret.path);
@@ -134,15 +123,12 @@ class Traveller {
 		this.serializeState(creep, destination, state, travelData);
 
 		if (!travelData.path || travelData.path.length === 0)
-			return ERR_NO_PATH;
+			return Game.ERR_NO_PATH;
 
 		if (state.stuckCount === 0 && !newPath)
 			travelData.path = travelData.path.substr(1);
 
 		let nextDirection = parseInt(travelData.path[0], 10);
-
-		// console.log(`travelDataPath: ${travelData.path}`)
-		// console.log(`nextDirection: ${nextDirection}`)
 
 		if (options.returnData) {
 			if (nextDirection) {
@@ -164,7 +150,7 @@ class Traveller {
 		let matrix;
 
 		if (options.ignoreStructures) {
-			matrix = new CostMatrix();
+			matrix = new Game.CostMatrix();
 			if (!options.ignoreCreeps) {
 				Traveller.addCreepsToMatrix(matrix);
 			}
@@ -182,16 +168,16 @@ class Traveller {
 
 		if (options.getMatrix) {
 			if (!matrix) {
-				console.log(`no MATRIX!!!`)
-				matrix = new CostMatrix();
+				console.log(`no MATRIX!!!`);
+				matrix = new Game.CostMatrix();
 			}
 			let outcome = matrix.clone();
-			outcome = Traveller.getMapMatrix(outcome)
+			outcome = Traveller.getMapMatrix(outcome);
 			return outcome;
 
 		}
 		return matrix;
-	}
+	};
 
 	static findTravelPath(origin, destination, options = {}) {
 		_.defaults(options, {
@@ -203,27 +189,27 @@ class Traveller {
 			options.range = 0;
 		}
 
-		return searchPath(origin, destination, {
+		return Game.searchPath(origin, destination, {
 			maxOps: options.maxOps,
 			plainCost: options.offRoad ? 1 : options.ignoreRoads ? 1 : 2,
 			swampCost: options.offRoad ? 1 : options.ignoreRoads ? 5 : 10,
 			range: options.range,
-			costMatrix: Traveller.callback(options)
+			costMatrix: Traveller.callback(options),
 		});
 	}
 
 	static getStructureMatrix(freshMatrix) {
-		if (!this.structureMatrixCache || (freshMatrix && Arena.time !== this.structureMatrixTick)) {
-			this.structureMatrixTick = Arena.time;
-			let matrix = new CostMatrix();
+		if (!this.structureMatrixCache || (freshMatrix && Game.getTicks() !== this.structureMatrixTick)) {
+			this.structureMatrixTick = Game.getTicks();
+			let matrix = new Game.CostMatrix();
 			this.structureMatrixCache = Traveller.addStructuresToMatrix(matrix, 1);
 		}
 		return this.structureMatrixCache;
 	}
 
 	static getCreepMatrix() {
-		if (!this.creepMatrixCache || Arena.time !== this.creepMatrixTick) {
-			this.creepMatrixTick = Arena.time;
+		if (!this.creepMatrixCache || Game.getTicks() !== this.creepMatrixTick) {
+			this.creepMatrixTick = Game.getTicks();
 			this.creepMatrixCache = Traveller.addCreepsToMatrix(this.getStructureMatrix(true).clone());
 
 		}
@@ -232,21 +218,21 @@ class Traveller {
 
 	static getMapMatrix(matrix) {
 		if (!this.mapMatrixCache)
-			this.mapMatrixCache = Traveller.addMapToMatrix(matrix)
+			this.mapMatrixCache = Traveller.addMapToMatrix(matrix);
 
 		return this.mapMatrixCache;
 	}
 
 	static addMapToMatrix(matrix) {
-		matrix = matrix.clone()
-		for(let y = 0; y < 100; y++) {
-			for(let x = 0; x < 100; x++) {
+		matrix = matrix.clone();
+		for (let y = 0; y < 100; y++) {
+			for (let x = 0; x < 100; x++) {
 				if (matrix.get(x, y) !== 0)
 					continue;
-				let tile = getTerrainAt({x: x, y: y});
+				let tile = Game.getTerrainAt({x: x, y: y});
 				let weight =
-					tile === TERRAIN_WALL ? 255 : tile === TERRAIN_SWAMP ? 5 : 1;
-					matrix.set(x, y, weight);
+					tile === Game.TERRAIN_WALL ? 255 : tile === Game.TERRAIN_SWAMP ? 5 : 1;
+				matrix.set(x, y, weight);
 			}
 		}
 
@@ -256,25 +242,25 @@ class Traveller {
 
 	static addStructuresToMatrix(matrix, roadCost) {
 		let impassibleStructures = [];
-		let structures = getObjectsByPrototype(Structure);
+		let structures = Game.getObjectsByPrototype(Game.Structure);
 		for (let structure of structures) {
-			if (structure instanceof StructureRampart) {
+			if (structure instanceof Game.StructureRampart) {
 				if (!structure.my)
 					impassibleStructures.push(structure);
-			} else if (structure instanceof StructureRoad) {
+			} else if (structure instanceof Game.StructureRoad) {
 				matrix.set(structure.x, structure.y, roadCost);
-			} else if (structure instanceof StructureContainer) {
+			} else if (structure instanceof Game.StructureContainer) {
 				matrix.set(structure.x, structure.y, 5);
 			} else {
 				impassibleStructures.push(structure);
 			}
 		}
 
-		let myConstructionSites = getObjectsByPrototype(ConstructionSite);
+		let myConstructionSites = Game.getObjectsByPrototype(Game.ConstructionSite);
 
 		for (let site of myConstructionSites) {
-			if (site.structure === StructureContainer || site.structure === StructureRoad
-				|| site.structureType === StructureRampart) {
+			if (site.structure === Game.StructureContainer || site.structure === Game.StructureRoad
+				|| site.structure === Game.StructureRampart) {
 				continue;
 			}
 			matrix.set(site.x, site.y, 0xff);
@@ -308,16 +294,14 @@ class Traveller {
 		if (x > 99 || x < 0 || y > 99 || y < 0) {
 			return;
 		}
-		return new RoomPosition(x, y, origin.roomName);
+		return new RoomPosition('positionAtDirection', {x: x, y: y});
 	}
 
 	static deserializeState(travelData, destination) {
 		let state = {};
 		if (travelData.state) {
 			state.lastCoord = {x: travelData.state[STATE_PREV_X], y: travelData.state[STATE_PREV_Y]};
-			// state.cpu = travelData.state[STATE_CPU];
 			state.stuckCount = travelData.state[STATE_STUCK];
-			// console.log(`x: ${travelData.state[STATE_DEST_X]} y: ${travelData.state[STATE_DEST_Y]}`)
 			state.destination = new RoomPosition('destination',
 				{
 					x: travelData.state[STATE_DEST_X],
@@ -357,14 +341,15 @@ class Traveller {
 
 }
 
-Creep.prototype.travelTo = function (destination, options) {
+
+Game.Creep.prototype.travelTo = function (destination, options) {
 	return Traveller.travelTo(this, destination, options);
 };
 
 
 RoomPosition.prototype.getAdjacentCells = function () {
 	let cells = this.neighbours;
-	const costMatrix = Traveller.callback({getMatrix: true})
+	const costMatrix = Traveller.callback({getMatrix: true});
 
 	for (let cell of cells)
 		cell.cost = costMatrix['_bits'][Traveller.posToMatrixKey(cell)];

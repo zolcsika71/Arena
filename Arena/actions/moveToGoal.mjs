@@ -1,11 +1,7 @@
-// 'use strict'
+'use strict'
 
 
 import Component from '../utils/component.mjs'
-
-
-
-
 
 class MoveToGoalAction extends Component {
     constructor(creep) {
@@ -20,7 +16,7 @@ class MoveToGoalAction extends Component {
         if (goal) {
             let data = {}
             let ret = creep.travelTo(goal, {returnData: data, range: 1})
-            // console.log(`travelTo: ${Utils.translateErrorCode(ret)}`)
+            // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
             // if (data.path) {
             //     console.log(`path.length: ${data.path.length}\n`);
             // }

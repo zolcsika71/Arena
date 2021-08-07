@@ -1,11 +1,9 @@
 'use strict';
 
-
-import {getRange} from '/game/utils';
+// import {getRange} from '/game/utils';
 import RoomPosition from '../roomPosition.mjs';
 
-
-class Utils {
+class Util {
 
 	json(x) {
 		return JSON.stringify(x, null, 2);
@@ -65,38 +63,33 @@ class Utils {
 			let option = options[i];
 			i === optionsLength - 1 ?
 				escapeSequence = escapeSequence + `${style[option]}m` :
-				escapeSequence = escapeSequence + `${style[option]};`
+				escapeSequence = escapeSequence + `${style[option]};`;
 		}
 		return escapeSequence;
 
 	}
 
 	log(title, messages) {
-		let logArray = [title]
+		let logArray = [title];
 		for (let message of messages) {
-			logArray.push(`\x1B[${this.style(message.style)} ${message.text}\x1B[0m`)
+			logArray.push(`\x1B[${this.style(message.style)} ${message.text}\x1B[0m`);
 		}
 		console.log(...logArray);
 	}
 
 	byRangeTo(position, reverse = false) {
 		reverse === false ? reverse = 1 : reverse = -1;
-		return (a, b) => (getRange(a, position) - getRange(b, position)) * reverse;
+		return (a, b) => (Game.getRange(a, position) - Game.getRange(b, position)) * reverse;
 	}
 
 	byHits(reverse = false) {
 		reverse === false ? reverse = 1 : reverse = -1;
 		return (a, b) => (a.hits - b.hits) * reverse;
 	}
-	isObj (val) {
-		if (val === null)
-			return false;
-		return typeof val === 'function' || typeof val === 'object';
-	};
 
 }
 
-
-export default new Utils();
+global.Util = new Util();
+export default global.Util
 
 
