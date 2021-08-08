@@ -23,7 +23,7 @@ class MovementAction extends Component {
                 // should creep move closer than attackRange to the target?
                 if (this.creep.role === 'Ranged' && Game.getRange(this, target) > 2) {
                     let data = {}
-                    creep.travelTo(target, {returnData: data})
+                    creep.travelTo(target, {returnData: data, movingTarget: true})
                     console.log(`Creep ${creep.id} => chasing Creep ${target.id}`)
                     if (data.path)
                         console.log(`${data.path.length} more!`);
@@ -32,23 +32,23 @@ class MovementAction extends Component {
                 // target out of range, should creep follow target or move to goal?
 
                 // behaviour: alert range
-                if (creep.inRangeTo(goal, creep.alertRange)) {
+                if (creep.inRangeTo(goal.position, creep.alertRange)) {
                     // follow target, because we're in alertRange
                     let data = {}
-                    creep.travelTo(goal, {returnData: data, range: 0})
+                    creep.travelTo(goal.position, {returnData: data, movingTarget: true})
                     // if (data.path)
                     //     console.log(`path.length: ${data.path.length}\n`);
                 } else {
                     // move to goal, because we're out of alertRange
                     let data = {}
-                    creep.travelTo(target, {returnData: data})
+                    creep.travelTo(target, {returnData: data, range: 0})
                     // if (data.path)
                     //     console.log(`path.length: ${data.path.length}\n`);
                 }
             }
         } else {
             let data = {}
-            let ret = creep.travelTo(goal, {returnData: data, range: 1})
+            let ret = creep.travelTo(goal.position, {returnData: data, range: 0})
             // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
             // if (data.path) {
             //     console.log(`creepId: ${creep.id} path.length: ${data.path.length}\n`);

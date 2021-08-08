@@ -1,6 +1,6 @@
 'use strict'
 
-import Arena from '../getArena.mjs'
+
 
 
 class Stats {
@@ -39,7 +39,7 @@ class Stats {
 
         if(this.timeForOutput) {
 
-            console.log(`tick: ${Game.getTicks()}`)
+            // console.log(`tick: ${Game.getTicks()}`)
 
             console.log(`Current Capture Point: ${Strategy.currentCapturePoint.position.toString()}`)
 

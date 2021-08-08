@@ -1,6 +1,6 @@
 'use strict';
 
-import Cache from './Cache.mjs';
+import GameCache from './Cache.mjs';
 import Stats from './utils/stats.mjs';
 import Arena from './getArena.mjs';
 
@@ -8,7 +8,7 @@ global.Strategy = Arena.strategy;
 
 class GameManager {
 	constructor() {
-		this.modules = [Cache, Arena, Strategy, Stats];
+		this.modules = [GameCache, Arena, Strategy, Stats];
 	}
 
 	get isFirstTick() {

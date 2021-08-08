@@ -42,39 +42,8 @@ class Util {
 			return new RoomPosition(name, {x: target.x, y: target.y});
 	};
 
-	style(options = []) {
-
-		let style = {
-			default: 0,
-			red: 31,
-			green: 32,
-			yellow: 33,
-			blue: 34,
-			magenta: 35,
-			cyan: 36,
-			white: 37,
-			bold: 1,
-		};
-
-		let escapeSequence = '',
-			optionsLength = options.length;
-
-		for (let i = 0; i < optionsLength; i++) {
-			let option = options[i];
-			i === optionsLength - 1 ?
-				escapeSequence = escapeSequence + `${style[option]}m` :
-				escapeSequence = escapeSequence + `${style[option]};`;
-		}
-		return escapeSequence;
-
-	}
-
-	log(title, messages) {
-		let logArray = [title];
-		for (let message of messages) {
-			logArray.push(`\x1B[${this.style(message.style)} ${message.text}\x1B[0m`);
-		}
-		console.log(...logArray);
+	sameCoord(pos1, pos2) {
+		return pos1.x === pos2.x && pos1.y === pos2.y;
 	}
 
 	byRangeTo(position, reverse = false) {
@@ -91,5 +60,7 @@ class Util {
 
 global.Util = new Util();
 export default global.Util
+
+
 
 

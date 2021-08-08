@@ -10,11 +10,9 @@ import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
 
-import {red, green, yellow} from '../utils/color.mjs';
-
 class CaptureTheFlagBasic {
 
-	static DELAY = 150;
+	static DELAY = 0;
 
 	constructor() {
 		this.groups = {
@@ -38,7 +36,7 @@ class CaptureTheFlagBasic {
 		};
 		this.attackers = [];
 		this.defenders = [];
-		this.capturePoints = {};
+		this.capturePoints = [];
 	};
 
 	get className() {
@@ -216,8 +214,8 @@ class CaptureTheFlagBasic {
 
 				actions = [
 					new AttackAction(creep),
-					// new MovementAction(creep),
-					new MoveToGoalAction(creep),
+					new MovementAction(creep),
+					// new MoveToGoalAction(creep),
 					new StayOutOfHarmAction(creep),
 				];
 
@@ -252,9 +250,6 @@ class CaptureTheFlagBasic {
 			// myArena.bridges[_.random(myArena.bridges.length - 1)],
 			// utils.getRoomPosition('enemyFlag', myArena.enemyFlag),
 		];
-
-		// console.log(`myCreeps: ${Util.json(myArena.myCreeps)}`)
-		// console.log(`Game: ${Game.OK}`)
 
 		this.initGroups();
 		this.initCreeps();
@@ -294,7 +289,7 @@ class CaptureTheFlagBasic {
 			|| group.name === 'Attacker_3') {
 
 			if (group.positionReached(this.currentCapturePoint.position)) {
-				console.log(`Current Capture Point Reached: ${this.currentCapturePoint.toString()}`)
+				console.log(`Current Capture Point Reached: ${this.currentCapturePoint.position.toString()}`)
 				if (this.capturePoints.length > 1)
 					this.capturePoints.shift();
 				else

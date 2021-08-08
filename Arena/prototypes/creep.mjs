@@ -2,10 +2,10 @@
 
 
 import RoomPosition from '../roomPosition.mjs';
+
 import HealerWeapon from '../weapon/healerWeapon.mjs';
 import MeleeWeapon from '../weapon/meleeWeapon.mjs';
 import RangedWeapon from '../weapon/rangedWeapon.mjs';
-
 
 const prototype = Game.Creep.prototype;
 
@@ -79,43 +79,43 @@ Object.defineProperties(prototype, {
 			let bodyParts = {};
 			for (let bodyPart of this.body) {
 				switch (bodyPart.type) {
-					case MOVE:
+					case Game.MOVE:
 						if (!bodyParts.move)
 							bodyParts.move = 1;
 						else
 							bodyParts.move += 1;
 						break;
-					case WORK:
+					case Game.WORK:
 						if (!bodyParts.work)
 							bodyParts.work = 1;
 						else
 							bodyParts.work += 1;
 						break;
-					case CARRY:
+					case Game.CARRY:
 						if (!bodyParts.carry)
 							bodyParts.carry = 1;
 						else
 							bodyParts.carry += 1;
 						break;
-					case ATTACK:
+					case Game.ATTACK:
 						if (!bodyParts.attack)
 							bodyParts.attack = 1;
 						else
 							bodyParts.attack += 1;
 						break;
-					case RANGED_ATTACK:
+					case Game.RANGED_ATTACK:
 						if (!bodyParts.ranged_attack)
 							bodyParts.ranged_attack = 1;
 						else
 							bodyParts.ranged_attack += 1;
 						break;
-					case HEAL:
+					case Game.HEAL:
 						if (!bodyParts.heal)
 							bodyParts.heal = 1;
 						else
 							bodyParts.heal += 1;
 						break;
-					case TOUGH:
+					case Game.TOUGH:
 						if (!bodyParts.tough)
 							bodyParts.tough = 1;
 						else
@@ -176,9 +176,7 @@ prototype.flee = function (targets, range) {
 };
 
 prototype.standsOn = function (position) {
-	// return position.x === this.x && position.y === this.y;
-	return _.isEqual(this.position, position);
-
+	return Util.sameCoord(this, position)
 };
 
 prototype.standsNear = function (position) {

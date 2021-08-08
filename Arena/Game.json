@@ -40,7 +40,7 @@
     "StructureTower": "[class StructureTower extends OwnedStructure]",
     "StructureWall": "[class StructureWall extends Structure]",
     "ATTACK": "attack",
-    "ATTACK_POWER": "30",
+    "ATTACK_POWER": 30,
     "BODYPART_COST": {
         "move": 50,
         "work": 100,
@@ -86,7 +86,7 @@
     "ERR_NO_BODYPART": -12,
     "ERR_NO_PATH": -2,
     "ERR_TIRED": -11,
-    "EXTENSION_ENERGY_CAPACITY": 10",
+    "EXTENSION_ENERGY_CAPACITY": 10,
     "EXTENSION_HITS": 100,
     "HARVEST_POWER": 2,
     "HEAL": "heal",

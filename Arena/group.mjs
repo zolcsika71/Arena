@@ -1,9 +1,7 @@
 'use strict';
 
-// import Cache from './Cache.mjs';
 import RoomPosition from './roomPosition.mjs';
-// import Arena from './getArena.mjs';
-
+import CapturePoint from './CapturePoints.mjs';
 
 class Group {
 	constructor(name, collection) {
@@ -18,13 +16,13 @@ class Group {
 	}
 
 	get members() {
-		if (!Cache.has(`members-${this.name}`)) {
+		if (!GameCache.has(`members-${this.name}`)) {
 			for (const creep of this._members) {
 				if (creep.isDead)
 					this.delete(creep);
 			}
 
-			Cache.add(`members-${this.name}`);
+			GameCache.add(`members-${this.name}`);
 		}
 
 		return this._members;
@@ -115,102 +113,81 @@ class Group {
 			creep.alertRange = alertRange;
 			creep.target = target[creep.role.toString()];
 
-			if (isSpreadTooHigh) {
-				if (!creep.inRangeTo(leader, this.optimalSpread)) {
-					// this.keepFormation(creep)
-					creep.goal = new RoomPosition('leader', this.leader)
-				} else
-					creep.goal = new RoomPosition('creep', creep);
-			} else {
-				creep.goal = goal[creep.role.toString()].position;
-			}
+			// if (isSpreadTooHigh) {
+			// 	if (!creep.inRangeTo(leader, this.optimalSpread)) {
+			// 		// this.keepFormation(creep)
+			// 		creep.goal = new RoomPosition('leader', this.leader)
+			// 	} else
+			// 		creep.goal = new RoomPosition('creep', creep);
+			// } else {
+			// 	creep.goal = goal[creep.role.toString()].position;
+			// }
+
+			if (creep.id === leader.id)
+				creep.goal = goal[creep.role.toString()];
+			else
+				creep.goal = this.keepFormation(creep, members);
+
 
 			creep.update();
 		}
 	}
 
-	occupiedByCreep(position) {
-		for (const creep of Arena.creeps) {
-			if (creep.standsNear(position) || (creep.my && creep.goal === position))
-				return true;
-		}
-		return false;
-	}
-
-	keepFormation(creep) {
+	keepFormation(creep, members) {
 		const leader = this.leader;
-		const members = this.members;
 
-		let formationPositions = [
-				{
-					role: 'Melee',
-					position: {
-						x: leader.x - 1,
-						y: leader.y,
-					},
-
+		let formationPositions = {
+			square: {
+				Melee: {
+					positions: [
+						new RoomPosition('',{x: leader.x - 1, y: leader.y})
+					]
 				},
-				{
-					role: 'Ranged',
-					position: {
-						x: leader.x - 1,
-						y: leader.y,
-					},
+				Ranged: {
+					positions: [
+						new RoomPosition('',{x: leader.x - 1, y: leader.y})
+					]
 				},
-				{
-					role: 'Healer_1',
-					position: {
-						x: leader.x - 1,
-						y: leader.y - 1,
-					},
-				},
-				{
-					role: 'Healer_2',
-					position: {
-						x: leader.x,
-						y: leader.y - 1,
-					},
-				},
-			];
-
-		if (creep.id === leader.id)
-			return;
-		// else {
-		// 	for (const member of members) {
-		// 		memberPositions.push(new RoomPosition(member.role, {x: member.x, y: member.y}));
-		// 	}
-		// }
-
-
-		for (const formationPosition of formationPositions) {
-			if ((formationPosition.role === 'Healer_1' || formationPositions.role === 'Healer_2')
-				&& creep.role === 'Healer') {
-				if (!this.occupiedByCreep(formationPosition.position))
-					creep.goal = formationPosition;
-
-			} else if (formationPosition.role === 'Melee' && creep.role === 'Melee') {
-				if (!this.occupiedByCreep(formationPosition.position))
-					creep.goal = formationPosition;
-
-			} else if (formationPosition.role === 'Ranged' && creep.role === 'Ranged') {
-				if (!this.occupiedByCreep(formationPosition.position))
-					creep.goal = formationPosition;
+				Healer: {
+					positions: [
+						new RoomPosition('',{x: leader.x - 1, y: leader.y - 1}),
+						new RoomPosition('',{x: leader.x, y: leader.y - 1})
+					]
+				}
 			}
 		}
+
+		let position = function (positions) {
+			if (positions.length === 1)
+				return positions[0]
+
+			let occupied = function (position) {
+				let returnValue = false;
+				for (const member of members) {
+					if (member.goal)
+						returnValue = Util.sameCoord(member.goal.position, position)
+				}
+				return returnValue
+
+			}
+
+			for (const position of positions) {
+				if (!occupied(position))
+					return position
+			}
+		}
+
+		let possiblePositions = formationPositions.square[creep.role.toString()].positions;
+
+		let goalPosition = new RoomPosition(`${'Creep ' + creep.id}`, position(possiblePositions))
+
+		return new CapturePoint(goalPosition)
+
 	}
 
 	positionReached(position) {
 		const members = this.members;
-		// if (this.goalDefinition.length === 1)
-		// 	return this.members.some(i => i.standsOn(position))
-		// else
-		return members.some(i => i.standsNear(position));
-
-		// return this.leader.standsOn(position)
-
-		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
-
-
+		return members.some(i => i.standsOn(position));
 	}
 }
 

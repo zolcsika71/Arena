@@ -1,6 +1,6 @@
 'use strict'
 
-class Cache {
+class GameCache {
 	constructor() {
 		this.cache = new Set()
 	}
@@ -22,6 +22,6 @@ class Cache {
 	}
 }
 
-global.Cache = new Cache();
+global.GameCache = new GameCache();
 
-export default global.Cache;
+export default global.GameCache;

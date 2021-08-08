@@ -25,9 +25,7 @@ class HealAction extends Component {
         // heal the closest friend in range in case the creep has no target
         // or the target is not in range
         if (!target || !woundedInRange.includes(target)) {
-            woundedInRange = woundedInRange
-                .sort(Util.byHits)
-
+            woundedInRange = woundedInRange.sort(Util.byHits)
             target = woundedInRange[0]
         }
 

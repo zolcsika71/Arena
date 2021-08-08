@@ -1,6 +1,5 @@
 'use strict'
 
-
 import Component from '../utils/component.mjs'
 
 class MoveToGoalAction extends Component {
@@ -15,7 +14,7 @@ class MoveToGoalAction extends Component {
 
         if (goal) {
             let data = {}
-            let ret = creep.travelTo(goal, {returnData: data, range: 1})
+            let ret = creep.travelTo(goal.position, {returnData: data, range: 0})
             // console.log(`travelTo: ${utils.translateErrorCode(ret)}`)
             // if (data.path) {
             //     console.log(`path.length: ${data.path.length}\n`);

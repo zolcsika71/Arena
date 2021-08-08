@@ -14,7 +14,7 @@ class Traveller {
 
 	static travelTo(creep, destination, options = {}) {
 
-		_.defaults(options = {
+		_.defaults(options, {
 			maxOps: DEFAULT_MAXOPS,
 			ignoreRoads: false,
 			ignoreCreeps: true,
@@ -82,7 +82,7 @@ class Traveller {
 		}
 
 		// delete path cache if destination is different
-		if (!this.sameCoord(state.destination, destination)) {
+		if (!Util.sameCoord(state.destination, destination)) {
 			if (options.movingTarget && state.destination.isNearTo(destination)) {
 				travelData.path += state.destination.getDirectionTo(destination);
 				state.destination = destination;
@@ -109,7 +109,7 @@ class Traveller {
 
 			if (ret.incomplete) {
 				// uncommenting this is a great way to diagnose creep behavior issues
-				console.log(`TRAVELER: incomplete path for Creep ${creep.id} target: ${creep.goal}`);
+				console.log(`${red('TRAVELER:')} incomplete path for ${green('Creep' + creep.id)} target: ${creep.goal.position.toString()}`);
 			}
 			if (options.returnData) {
 				options.returnData.pathfinderReturn = ret;
@@ -180,14 +180,17 @@ class Traveller {
 	};
 
 	static findTravelPath(origin, destination, options = {}) {
-		_.defaults(options, {
-			ignoreCreeps: true,
-			maxOps: DEFAULT_MAXOPS,
-			range: 1,
-		});
+		// _.defaults(options, {
+		// 	ignoreCreeps: true,
+		// 	maxOps: DEFAULT_MAXOPS,
+		// 	range: 1,
+		// });
 		if (options.movingTarget) {
 			options.range = 0;
 		}
+
+		// console.log(`${Util.json(options)}`)
+
 
 		return Game.searchPath(origin, destination, {
 			maxOps: options.maxOps,
@@ -318,14 +321,14 @@ class Traveller {
 		travelData.state = [creep.x, creep.y, state.stuckCount, destination.x, destination.y];
 	}
 
-	static sameCoord(pos1, pos2) {
-		return pos1.x === pos2.x && pos1.y === pos2.y;
-	}
+	// static sameCoord(pos1, pos2) {
+	// 	return pos1.x === pos2.x && pos1.y === pos2.y;
+	// }
 
 	static isStuck(creep, state) {
 		let stuck = false;
 		if (state.lastCoord !== undefined) {
-			if (this.sameCoord(creep, state.lastCoord)) {
+			if (Util.sameCoord(creep, state.lastCoord)) {
 				// didn't move
 				stuck = true;
 			}
