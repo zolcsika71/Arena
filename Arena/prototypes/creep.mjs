@@ -6,6 +6,7 @@ import RoomPosition from '../roomPosition.mjs';
 import HealerWeapon from '../weapon/healerWeapon.mjs';
 import MeleeWeapon from '../weapon/meleeWeapon.mjs';
 import RangedWeapon from '../weapon/rangedWeapon.mjs';
+import {green, yellow} from '../utils/color.mjs';
 
 const prototype = Game.Creep.prototype;
 
@@ -128,7 +129,7 @@ Object.defineProperties(prototype, {
 		},
 		configurable: true,
 	},
-	'position': {
+	'pos': {
 		get: function () {
 			return new RoomPosition(this.id, {
 				x: this.x,
@@ -141,19 +142,23 @@ Object.defineProperties(prototype, {
 
 prototype.toString = function () {
 	const faction = this.my ? 'Friend' : 'Enemy';
-	return `[${faction}, {id: ${this.id}, role: ${this.role}, x: ${this.x}, y: ${this.y}}]`;
+	return `[${yellow(faction)}, {group: ${yellow(this.group.name)}, id: ${yellow(this.id)}, memberId: ${yellow(this.memberId)}, role: ${yellow(this.role)}, x: ${yellow(this.x)}, y: ${yellow(this.y)}}]`;
 };
 
 prototype.start = function (actions = []) {
 	this.actions = actions;
+	this.executedActions = [];
 	for (const action of actions) {
-		action.start();
+		if (action.start() === Game.OK)
+			this.executedActions.push(action.name)
 	}
 };
 
 prototype.update = function () {
+	this.executedActions = [];
 	for (const action of this.actions) {
-		action.update();
+		if (action.update() === Game.OK)
+			this.executedActions.push(action.name)
 	}
 };
 
@@ -171,7 +176,7 @@ prototype.flee = function (targets, range) {
 
 	if (result.path.length > 0) {
 		let direction = Game.getDirection(result.path[0].x - this.x, result.path[0].y - this.y);
-		this.move(direction);
+		return this.move(direction);
 	}
 };
 

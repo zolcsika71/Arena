@@ -15,10 +15,10 @@ class RangedWeapon {
     attack(target, numberOfEnemiesInRange) {
         if (numberOfEnemiesInRange >= this.massAttackTreshold) {
             console.log(`massAttack: ${this.creep.id}`)
-            this.creep.rangedMassAttack(target)
+            return this.creep.rangedMassAttack(target)
         } else {
             console.log(`rangedAttack: ${this.creep.id}`)
-            this.creep.rangedAttack(target)
+            return this.creep.rangedAttack(target)
         }
     }
 }

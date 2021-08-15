@@ -2,15 +2,21 @@
 
 
 class CapturePoint {
-	constructor(position, stay = false) {
+	constructor(position, ignoreCreeps = true) {
 		this.position = position;
-		this.stay = this.stayThere(stay);
+		this.x = position.x
+		this.y = position.y
+		this.ignoreCreeps = ignoreCreeps
+	}
+	// https://stackoverflow.com/questions/13286233/pass-a-javascript-function-as-parameter
+	stayThere(callback, args) {
+		if (_.isFunction(callback))
+			callback.apply(this, args);
+		return callback;
 	}
 
-	stayThere(stay) {
-		if (_.isFunction(stay))
-			return stay();
-		return stay;
+	toString() {
+		return `[${green(this.position.name)}] x: ${yellow(this.x)}, y: ${yellow(this.y)}, cost: ${yellow(this.position.cost)}`;
 	}
 }
 

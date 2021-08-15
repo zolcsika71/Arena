@@ -6,9 +6,11 @@ const DEFAULT_MAXOPS = 50000;
 const DEFAULT_STUCK_VALUE = 2;
 const STATE_PREV_X = 0;
 const STATE_PREV_Y = 1;
-const STATE_STUCK = 2;
-const STATE_DEST_X = 3;
-const STATE_DEST_Y = 4;
+const STATE_NEXT_X = 2;
+const STATE_NEXT_Y = 3;
+const STATE_STUCK = 4;
+const STATE_DEST_X = 5;
+const STATE_DEST_Y = 6;
 
 class Traveller {
 
@@ -19,73 +21,111 @@ class Traveller {
 			ignoreRoads: false,
 			ignoreCreeps: true,
 			offRoad: false,
-			stuckValue: 2,
+			stuckValue: DEFAULT_STUCK_VALUE,
 			ignoreStructures: false,
 			range: 1,
 			obstacles: [],
 			getMatrix: false,
-			returnData: {},
 			movingTarget: false,
 			rePath: false,
-			travelData: [],
+			reversePath: false,
 			freshMatrix: false,
 		});
 
-		if (options.getMatrix)
-			return Traveller.findTravelPath(origin, destination, options);
+		// if (options.getMatrix)
+		// 	return Traveller.findTravelPath(origin, destination, options);
 
 		if (!destination)
 			return Game.ERR_INVALID_ARGS;
 
-		if (creep.fatigue > 0)
-			return Game.ERR_TIRED;
-
 		destination = Util.getRoomPosition('destination', destination);
+
 		let rangeToDestination = Game.getRange(creep, destination)
 
-		if (options.range && rangeToDestination <= options.range)
-			return Game.OK;
-		else if (rangeToDestination <= 1) {
-			if (rangeToDestination === 1 && !options.range) {
-				let direction = creep.position.getDirectionTo(destination);
-				if (options.returnData) {
-					options.returnData.nextPos = destination;
-					options.returnData.path = direction.toString();
-				}
-
-				return creep.move(direction);
-			}
-			return Game.OK;
-		}
 		// initialize data object
-		if (!creep.travel)
-			creep.travel = {};
-
-		let travelData = creep.travel;
-
-		let state = this.deserializeState(travelData, destination);
-
-		if (this.isStuck(creep, state))
-			state.stuckCount++;
-		else
-			state.stuckCount = 0;
-
-		// handle case where creep is stuck
-		if (!options.stuckValue) {
-			options.stuckValue = DEFAULT_STUCK_VALUE;
+		if (!creep.travel) {
+			creep.travel = {
+				path: '',
+				reversePath: '',
+				destination: undefined,
+				state: {
+					tick: Arena.time,
+					stuckCount: 0,
+					lastPos: undefined,
+					nextPos: undefined
+				},
+				searchPath: {
+					ops: undefined,
+					cost: undefined,
+					incomplete: undefined,
+					move: undefined,
+					options: undefined
+				}
+			};
 		}
 
-		if (state.stuckCount >= options.stuckValue && Math.random() > .5) {
+		let travelData = creep.travel
+		travelData.searchPath.options = options;
+		// travelData.destination = destination;
+		travelData.state.lastPos = creep;
+
+		if (creep.fatigue > 0) {
+			travelData.state.tick = Arena.time;
+			return Game.ERR_TIRED;
+		}
+
+		// manage case where creep is nearby destination
+		if (rangeToDestination <= options.range)
+			return Game.OK;
+		// else if (rangeToDestination <= 1) {
+		// 	if (rangeToDestination === 1 && !options.range) {
+		//
+		// 		let direction = creep.pos.getDirectionTo(destination);
+		// 		travelData.path += direction;
+		//
+		// 		if (_.some(Arena.myCreeps, otherCreep =>{
+		// 			if (creep.id !== otherCreep.id) {
+		// 				if (Util.sameCoord(creep))
+		// 			}
+		//
+		// 		}))
+		//
+		// 		let ret = creep.move(direction);
+		// 		travelData.searchPath.move = ret;
+		//
+		//
+		//
+		// 		if (ret === Game.OK)
+		// 			travelData.state.nextPos = destination;
+		// 		else
+		// 			travelData.state.nextPos = creep;
+		//
+		// 		return ret;
+		//
+		// 	}
+		// 	return Game.OK;
+		// }
+
+		travelData.destination = destination;
+
+		if (this.isStuck(creep, travelData))
+			travelData.state.stuckCount++;
+		else {
+			travelData.state.stuckCount = 0;
+			// travelData.state.lastPos = creep;
+		}
+
+		if (travelData.state.stuckCount >= options.stuckValue && Math.random() > .5) {
 			options.ignoreCreeps = false;
 			options.freshMatrix = true;
 			delete travelData.path;
 		}
 
 		// delete path cache if destination is different
-		if (!Util.sameCoord(state.destination, destination)) {
-			if (options.movingTarget && state.destination.isNearTo(destination)) {
-				travelData.path += state.destination.getDirectionTo(destination);
-				state.destination = destination;
+		if (!Util.sameCoord(travelData.destination, destination)) {
+			if (options.movingTarget && travelData.destination.isNearTo(destination)) {
+				travelData.path += travelData.destination.getDirectionTo(destination);
+				travelData.destination = destination;
 			} else
 				delete travelData.path;
 		}
@@ -99,49 +139,99 @@ class Traveller {
 		let newPath = false;
 		if (!travelData.path) {
 			newPath = true;
+
 			if (creep.spawning)
 				return Game.ERR_BUSY;
-			state.destination = destination;
+
+			travelData.destination = destination;
 
 			let ret = this.findTravelPath(creep, destination, options);
 
 			// console.log(`path: ${utils.json(ret)}`)
 
-			if (ret.incomplete) {
-				// uncommenting this is a great way to diagnose creep behavior issues
-				console.log(`${red('TRAVELER:')} incomplete path for ${green('Creep' + creep.id)} target: ${creep.goal.position.toString()}`);
-			}
-			if (options.returnData) {
-				options.returnData.pathfinderReturn = ret;
-				options.returnData.costMatrix = ret.costMatrix;
-			}
+			// if (ret.incomplete && creep.group.name === 'Attacker_3') {
+			// 	// uncommenting this is a great way to diagnose creep behavior issues
+			// 	console.log(`${red('TRAVELER:')} [${yellow(creep.id)}] incomplete path for ${creep.toString()}`);
+			// 	console.log(`${red('TRAVELER:')} [${yellow(creep.id)}] target: ${destination.toString()}`);
+			// 	console.log(`path: ${Util.json(ret.path)}`);
+			// 	console.log(`ignoreCreeps: ${options.ignoreCreeps} range: ${options.range}`);
+			// }
 
-			travelData.path = Traveller.serializePath(creep.position, ret.path);
+			travelData.path = Traveller.serializePath(creep.pos, ret.path);
 
-			state.stuckCount = 0;
+
+			if (options.reversePath && !travelData.reversePath)
+				travelData.reversePath = this.reversePath(travelData.path);
+
+			travelData.searchPath.ops = ret.ops;
+			travelData.searchPath.cost = ret.cost
+			travelData.searchPath.incomplete = ret.incomplete
+
+
+			travelData.stuckCount = 0;
 		}
-		this.serializeState(creep, destination, state, travelData);
+
+		// this.serializeState(creep, destination, state, travelData);
 
 		if (!travelData.path || travelData.path.length === 0)
 			return Game.ERR_NO_PATH;
 
-		if (state.stuckCount === 0 && !newPath)
+		if (travelData.stuckCount === 0 && !newPath)
 			travelData.path = travelData.path.substr(1);
 
 		let nextDirection = parseInt(travelData.path[0], 10);
+		let nextPos = Traveller.positionAtDirection(creep, nextDirection);
 
-		if (options.returnData) {
-			if (nextDirection) {
-				let nextPos = Traveller.positionAtDirection(creep, nextDirection);
-				if (nextPos) {
-					options.returnData.nextPos = nextPos;
-				}
-			}
-			options.returnData.state = state;
-			options.returnData.path = travelData.path;
+		// console.log(`before: ${creep.toString()}`);
+
+		// let ret = (!_.some(Arena.myCreeps, otherCreep =>{
+		// 	if (creep.id !== otherCreep.id) {
+		// 		return Util.sameCoord(nextPos, otherCreep) || Util.sameCoord(nextPos, otherCreep.nextPos)
+		// 	} else
+		// 		return false
+		//
+		// }))
+
+
+		let ret = false;
+		for (const otherCreep of Arena.myCreeps) {
+			if (creep.id !== otherCreep.id)
+				if (otherCreep.state)
+					ret = !(Util.sameCoord(nextPos, otherCreep) || Util.sameCoord(nextPos, otherCreep.state.nextPos));
+				else
+					ret = !Util.sameCoord(nextPos, otherCreep)
+			if (ret)
+				break;
 		}
 
-		return creep.move(nextDirection);
+		if (ret === true) {
+			travelData.searchPath.move = creep.move(nextDirection);
+			travelData.state.nextPos = nextPos;
+		} else {
+			travelData.state.nextPos = creep;
+		}
+
+		return ret;
+	}
+
+	static reversePath(path) {
+		let reversePath = '';
+		path = path.reverse()
+		let reverseDirection = {
+			1: Game.BOTTOM,
+			2: Game.BOTTOM_LEFT,
+			3: Game.LEFT,
+			4: Game.TOP_LEFT,
+			5: Game.TOP,
+			6: Game.TOP_RIGHT,
+			7: Game.RIGHT,
+			8: Game.BOTTOM_RIGHT
+		}
+
+		for (const direction of path)
+			reversePath += reverseDirection[direction]
+
+		return reversePath
 
 	}
 
@@ -168,7 +258,6 @@ class Traveller {
 
 		if (options.getMatrix) {
 			if (!matrix) {
-				console.log(`no MATRIX!!!`);
 				matrix = new Game.CostMatrix();
 			}
 			let outcome = matrix.clone();
@@ -180,17 +269,9 @@ class Traveller {
 	};
 
 	static findTravelPath(origin, destination, options = {}) {
-		// _.defaults(options, {
-		// 	ignoreCreeps: true,
-		// 	maxOps: DEFAULT_MAXOPS,
-		// 	range: 1,
-		// });
-		if (options.movingTarget) {
+
+		if (options.movingTarget)
 			options.range = 0;
-		}
-
-		// console.log(`${Util.json(options)}`)
-
 
 		return Game.searchPath(origin, destination, {
 			maxOps: options.maxOps,
@@ -259,7 +340,7 @@ class Traveller {
 			}
 		}
 
-		let myConstructionSites = Game.getObjectsByPrototype(Game.ConstructionSite);
+		let myConstructionSites = Game.getAll('ConstructionSite');
 
 		for (let site of myConstructionSites) {
 			if (site.structure === Game.StructureContainer || site.structure === Game.StructureRoad
@@ -295,15 +376,22 @@ class Traveller {
 		let x = origin.x + offsetX[direction];
 		let y = origin.y + offsetY[direction];
 		if (x > 99 || x < 0 || y > 99 || y < 0) {
-			return;
+			return false;
 		}
-		return new RoomPosition('positionAtDirection', {x: x, y: y});
+		return new RoomPosition(`direction: ${Util.directionToString(direction)}`, {x: x, y: y});
 	}
 
 	static deserializeState(travelData, destination) {
 		let state = {};
 		if (travelData.state) {
-			state.lastCoord = {x: travelData.state[STATE_PREV_X], y: travelData.state[STATE_PREV_Y]};
+			state.lastPos = {
+				x: travelData.state[STATE_PREV_X],
+				y: travelData.state[STATE_PREV_Y]
+			};
+			// state.nextCoord = {
+			// x: travelData.state[STATE_NEXT_X],
+			// y: travelData.state[STATE_NEXT_Y]
+			// };
 			state.stuckCount = travelData.state[STATE_STUCK];
 			state.destination = new RoomPosition('destination',
 				{
@@ -321,14 +409,10 @@ class Traveller {
 		travelData.state = [creep.x, creep.y, state.stuckCount, destination.x, destination.y];
 	}
 
-	// static sameCoord(pos1, pos2) {
-	// 	return pos1.x === pos2.x && pos1.y === pos2.y;
-	// }
-
-	static isStuck(creep, state) {
+	static isStuck(creep, travelData) {
 		let stuck = false;
-		if (state.lastCoord !== undefined) {
-			if (Util.sameCoord(creep, state.lastCoord)) {
+		if (!_.isUndefined(travelData.state.lastPos)) {
+			if (Util.sameCoord(creep, travelData.state.lastPos)) {
 				// didn't move
 				stuck = true;
 			}

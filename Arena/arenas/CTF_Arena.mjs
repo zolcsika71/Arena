@@ -69,6 +69,10 @@ class CaptureTheFlagArena extends myArena {
 
 		return position;
 	}
+
+	get isBaseAtNorthWest() {
+		return this.myCornerPosition.x === 1;
+	}
 }
 
 

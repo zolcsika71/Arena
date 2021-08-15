@@ -6,11 +6,11 @@ class GameCache {
 	}
 
 	get className() {
-		return 'Cache'
+		return 'GameCache'
 	}
 
 	has(cacheKey) {
-		this.cache.has(cacheKey)
+		return this.cache.has(cacheKey)
 	}
 
 	add(cacheKey) {

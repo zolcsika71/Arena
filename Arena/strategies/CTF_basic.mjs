@@ -9,6 +9,7 @@ import LastStandAction from '../actions/lastStand.mjs';
 import MovementAction from '../actions/movement.mjs';
 import MoveToGoalAction from '../actions/moveToGoal.mjs';
 import StayOutOfHarmAction from '../actions/stayOutOfHarm.mjs';
+import IdleAction from '../actions/idle.mjs';
 
 class CaptureTheFlagBasic {
 
@@ -79,7 +80,7 @@ class CaptureTheFlagBasic {
 			// for (const neighbour of neighbours)
 			// 	console.log(`neighbour: ${red(neighbour.toString())}`)
 
-			return capturePoint
+			return capturePoint;
 
 
 		}
@@ -91,19 +92,19 @@ class CaptureTheFlagBasic {
 		if (group.leader === null)
 			return null;
 
-		const enemyCreeps = Arena.enemyCreeps
-		const position = group.leader
-		const alertRange = 1
-		const flag = Arena.myFlag
+		const enemyCreeps = Arena.enemyCreeps;
+		const position = group.leader;
+		const alertRange = this.alertRange(group);
+		const flag = Arena.myFlag;
 
 		let targets = enemyCreeps
 		.filter(i => i.inRangeTo(position, alertRange))
-		.sort(Util.byRangeTo(flag))
+		.sort(Util.byRangeTo(flag));
 
 		if (targets.length === 0)
-			return null
+			return null;
 
-		return targets[0]
+		return targets[0];
 	}
 
 	findRangedTarget(group) {
@@ -121,7 +122,7 @@ class CaptureTheFlagBasic {
 	}
 
 	targetDefinition(group) {
-		const meleeTarget = this.findMeleeTarget(group)
+		const meleeTarget = this.findMeleeTarget(group);
 		const rangedTarget = this.findRangedTarget(group);
 		const healTarget = group.wounded[0];
 
@@ -140,7 +141,7 @@ class CaptureTheFlagBasic {
 			goalDefinition = {
 				'Melee': new CapturePoint(Util.getRoomPosition('myFlag', Arena.myFlag)),
 				'Ranged': new CapturePoint(Util.getRoomPosition('myFlag', Arena.myFlag)),
-			}
+			};
 		}
 
 		if (name === 'Attacker_1' || name === 'Attacker_2' || name === 'Attacker_3') {
@@ -148,10 +149,10 @@ class CaptureTheFlagBasic {
 				'Melee': this.currentCapturePoint,
 				'Ranged': this.currentCapturePoint,
 				'Healer': this.currentCapturePoint,
-			}
+			};
 		}
 
-		return goalDefinition
+		return goalDefinition;
 
 	}
 
@@ -160,7 +161,7 @@ class CaptureTheFlagBasic {
 		let alertRange;
 
 		if (name === 'Defender_1') {
-			alertRange = 10;
+			alertRange = 5;
 		} else if (name === 'Attacker_1' || name === 'Attacker_2' || name === 'Attacker_3') {
 			alertRange = Arena.time <= CaptureTheFlagBasic.DELAY ? 10 : 20;
 		}
@@ -184,13 +185,11 @@ class CaptureTheFlagBasic {
 	initCreeps() {
 		for (let creep of Arena.myCreeps) {
 
-			// console.log(`creep: ${Util.json(creep)}`)
-
 			let actions;
 
 			if (creep.isMelee) {
 				creep.role = 'Melee';
-				creep.travel = {};
+				// creep.travel = {};
 				for (const group of this.defenders) {
 					if (group.add(creep))
 						break;
@@ -200,13 +199,14 @@ class CaptureTheFlagBasic {
 					new AttackAction(creep),
 					new MovementAction(creep),
 					new LastStandAction(creep),
+					new IdleAction(creep)
 				];
 
 			}
 
 			if (creep.isRanged) {
 				creep.role = 'Ranged';
-				creep.travel = {};
+				// creep.travel = {};
 				for (const group of this.attackers) {
 					if (group.add(creep))
 						break;
@@ -217,13 +217,14 @@ class CaptureTheFlagBasic {
 					new MovementAction(creep),
 					// new MoveToGoalAction(creep),
 					new StayOutOfHarmAction(creep),
+					new IdleAction(creep)
 				];
 
 			}
 
 			if (creep.isHealer) {
 				creep.role = 'Healer';
-				creep.travel = {};
+				// creep.travel = {};
 				for (const group of this.attackers) {
 					if (group.add(creep))
 						break;
@@ -233,6 +234,7 @@ class CaptureTheFlagBasic {
 					new HealAction(creep),
 					new MovementAction(creep),
 					new StayOutOfHarmAction(creep),
+					new IdleAction(creep)
 				];
 			}
 
@@ -245,7 +247,7 @@ class CaptureTheFlagBasic {
 		this.capturePoints = [
 
 			new CapturePoint(Arena.bridges[_.random(Arena.bridges.length - 1)]),
-			new CapturePoint(Util.getRoomPosition('enemyFlag', Arena.enemyFlag))
+			new CapturePoint(Util.getRoomPosition('enemyFlag', Arena.enemyFlag)),
 
 			// myArena.bridges[_.random(myArena.bridges.length - 1)],
 			// utils.getRoomPosition('enemyFlag', myArena.enemyFlag),
@@ -282,21 +284,15 @@ class CaptureTheFlagBasic {
 
 		group.alertRange = this.alertRange(group);
 		group.targetDefinition = this.targetDefinition(group);
-		group.goalDefinition = this.goalDefinition(group)
+		group.goalDefinition = this.goalDefinition(group);
 
-		if (group.name === 'Attacker_1'
-			|| group.name === 'Attacker_2'
-			|| group.name === 'Attacker_3') {
-
-			if (group.positionReached(this.currentCapturePoint.position)) {
-				console.log(`Current Capture Point Reached: ${this.currentCapturePoint.position.toString()}`)
-				if (this.capturePoints.length > 1)
-					this.capturePoints.shift();
-				else
-					console.log(`last capture point reached`)
-			}
+		if (group.positionReached(this.currentCapturePoint.position)) {
+			console.log(`Current Capture Point Reached: ${this.currentCapturePoint.position.toString()}`);
+			if (this.capturePoints.length > 1)
+				this.capturePoints.shift();
+			else
+				console.log(`last capture point reached`);
 		}
-
 
 
 		// console.log(`goal_0: ${utils.json(group.goalDefinition)}`)
@@ -305,4 +301,4 @@ class CaptureTheFlagBasic {
 	}
 }
 
-export default CaptureTheFlagBasic
+export default CaptureTheFlagBasic;

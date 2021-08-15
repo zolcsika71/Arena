@@ -1,14 +1,17 @@
 'use strict';
 
-import GameCache from './Cache.mjs';
+import GameCache from './gameCache.mjs';
 import Stats from './utils/stats.mjs';
 import Arena from './getArena.mjs';
+import Visuals from './visuals.mjs'
+
 
 global.Strategy = Arena.strategy;
 
 class GameManager {
-	constructor() {
-		this.modules = [GameCache, Arena, Strategy, Stats];
+	constructor(test) {
+		this.modules = [GameCache, Arena, Strategy, Stats, Visuals];
+		this.test = test;
 	}
 
 	get isFirstTick() {
@@ -16,20 +19,26 @@ class GameManager {
 	}
 
 	loop() {
-		if (this.isFirstTick) {
-			for (const module of this.modules) {
-				if (_.isFunction(module.start)) {
-					module.start();
-				}
-			}
+		console.log(`test: ${this.test.enabled}`);
+		if (this.test.enabled) {
+			_.forEach(this.test.modules, module => {
+				console.log(`${Util.json(module)}`);
+				if (typeof module.run === 'function' && module.enabled)
+					module.run();
+			})
+
 		} else {
-			for (const module of this.modules) {
-				if (_.isFunction(module.update)) {
-					module.update();
-				}
+			if (this.isFirstTick) {
+				for (const module of this.modules)
+					if (module.start)
+						module.start();
+			} else {
+				for (const module of this.modules)
+					if (module.update)
+						module.update();
 			}
 		}
 	}
 }
 
-export default new GameManager();
+export default GameManager;

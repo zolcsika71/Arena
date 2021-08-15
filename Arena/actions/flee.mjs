@@ -1,10 +1,11 @@
 'use strict'
 
-import Component from '../utils/component.mjs'
+import Component from './component.mjs'
 
 class Flee extends Component {
     constructor(creep) {
         super()
+        this.name = 'Flee'
         this.creep = creep
         this.meleeHitsThreshold = Math.floor(creep.hitsMax * this.meleeHitsPercentage)
         this.rangedHitsThreshold = Math.floor(creep.hitsMax * this.rangedHitsPercentage)
@@ -25,7 +26,7 @@ class Flee extends Component {
             .filter(i => i.canAttack && i.inRangeTo(creep, i.weapon.range))
 
         if (enemiesInRange.length === 0)
-            return
+            return false
 
         let fleeRange = 0
 
@@ -41,7 +42,8 @@ class Flee extends Component {
             fleeRange = distances[distances.length - 1] + 1
         }
 
-        creep.flee(enemiesInRange, fleeRange)
+        return creep.flee(enemiesInRange, fleeRange)
+
     }
 }
 

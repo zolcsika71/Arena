@@ -8,6 +8,8 @@ class Group {
 		this.name = name;
 		this.leader = null;
 		this._members = [];
+		this.memberId = [];
+		this.lastDirection = null;
 		this.collection = collection;
 		this.targetDefinition = null;
 		this.goalDefinition = null;
@@ -49,24 +51,50 @@ class Group {
 		return Game.getRange(leader, sorted[0]);
 	}
 
-	full(role) {
-		let groupHas = _.filter(this.members,
+	isFormationOk(members) {
+		let formationOk = true;
+		for (const member of members) {
+			if (!this.keepFormation(member, this.leader, true)) {
+				formationOk = false;
+				break;
+			}
+		}
+		return formationOk;
+	}
+
+	full(role, members) {
+		let groupHas = _.filter(members,
 			member => member.role === role).length;
 		return groupHas === this.collection.members[role.toLowerCase()];
 	}
 
+	getMemberId(creep, members) {
+		if (creep.role === 'Ranged' || creep.role === 'Melee')
+			creep.memberId = 1;
+		else if (creep.role === 'Healer') {
+			if (_.some(members, member => member.memberId === 2))
+				creep.memberId = 3;
+			else
+				creep.memberId = 2;
+		}
+	}
+
 	add(creep) {
-		if (this.full(creep.role))
+		const members = this.members;
+
+		if (this.full(creep.role, members))
 			return false;
 
 		this._members.push(creep);
 		creep.group = this;
 
-		// console.log(`group: ${this.name} creep: ${creep.id}`)
-
+		// select leader
 		if (!this.leader && creep.role === this.collection.leader) {
 			this.leader = creep;
-		}
+			creep.memberId = 0;
+		} else
+			this.getMemberId(creep, members);
+
 		return true;
 	}
 
@@ -103,91 +131,109 @@ class Group {
 		if (members.length === 0)
 			return;
 
-		const leader = this.leader;
 		const target = this.targetDefinition;
 		const goal = this.goalDefinition;
 		const alertRange = this.alertRange;
+		const leader = this.leader;
 		const isSpreadTooHigh = this.isSpreadTooHigh;
+
+		let groupGoal = goal[leader.role.toString()];
+		let groupTarget = target[leader.role.toString()];
 
 		for (const creep of members) {
 			creep.alertRange = alertRange;
-			creep.target = target[creep.role.toString()];
 
-			// if (isSpreadTooHigh) {
-			// 	if (!creep.inRangeTo(leader, this.optimalSpread)) {
-			// 		// this.keepFormation(creep)
-			// 		creep.goal = new RoomPosition('leader', this.leader)
-			// 	} else
-			// 		creep.goal = new RoomPosition('creep', creep);
-			// } else {
-			// 	creep.goal = goal[creep.role.toString()].position;
-			// }
+			if (!this.isFormationOk(members)) {
+				creep.goal = this.keepFormation(creep, leader);
 
-			if (creep.id === leader.id)
-				creep.goal = goal[creep.role.toString()];
-			else
-				creep.goal = this.keepFormation(creep, members);
-
+			} else if (creep.role === 'Ranged' || creep.role === 'Melee') {
+				if (target.Ranged || target.Melee) {
+					if (creep.id === leader.id)
+						creep.target = groupTarget;
+					else
+						creep.goal = this.keepFormation(creep, groupTarget);
+				} else
+					creep.goal = this.keepFormation(creep, groupGoal);
+			} else {
+				creep.target = target[creep.role.toString()];
+				creep.goal = this.keepFormation(creep, groupGoal);
+			}
 
 			creep.update();
 		}
 	}
 
-	keepFormation(creep, members) {
+	keepFormation(creep, target, check = false) {
 		const leader = this.leader;
+		let direction;
+		let offset;
+		let equator;
 
-		let formationPositions = {
-			square: {
-				Melee: {
-					positions: [
-						new RoomPosition('',{x: leader.x - 1, y: leader.y})
-					]
-				},
-				Ranged: {
-					positions: [
-						new RoomPosition('',{x: leader.x - 1, y: leader.y})
-					]
-				},
-				Healer: {
-					positions: [
-						new RoomPosition('',{x: leader.x - 1, y: leader.y - 1}),
-						new RoomPosition('',{x: leader.x, y: leader.y - 1})
-					]
-				}
-			}
+
+		if (_.isEqual(leader, target)) {
+			if (Arena.isBaseAtNorthWest)
+				direction = Game.BOTTOM_RIGHT;
+			else
+				direction = Game.TOP_LEFT;
+		} else
+			direction = leader.pos.getDirectionTo(target.position);
+
+		if (direction !== 0)
+			this.lastDirection = direction;
+
+		let directionToEquator = {
+			1: 'north',
+			2: 'northEast',
+			3: 'east',
+			4: 'southEast',
+			5: 'south',
+			6: 'south',
+			7: 'west',
+			8: 'north',
+		};
+
+		let quadForm = {
+			north: [[0, 0], [1, 0], [0, 1], [1, 1]], // north-west too
+			northEast: [[0, 0], [-1, 0], [0, 1], [-1, 1]],
+			south: [[0, 0], [1, 0], [0, -1], [1, -1]], // south-west too
+			southEast: [[0, 0], [-1, 0], [0, -1], [-1, -1]],
+			east: [[0, 0], [0, -1], [-1, 0], [-1, -1]],
+			west: [[0, 0], [0, 1], [1, 0], [1, 1]],
+		};
+
+		if (direction === 0) {
+			equator = directionToEquator[this.lastDirection];
+			offset = quadForm[equator][creep.memberId];
+		}
+		else {
+			equator = directionToEquator[direction];
+			offset = quadForm[equator][creep.memberId];
 		}
 
-		let position = function (positions) {
-			if (positions.length === 1)
-				return positions[0]
+		let targetPosition = new RoomPosition(`equator: ${equator}, offset: ${offset}`, {
+			x: target.x + offset[0],
+			y: target.y + offset[1],
+		});
 
-			let occupied = function (position) {
-				let returnValue = false;
-				for (const member of members) {
-					if (member.goal)
-						returnValue = Util.sameCoord(member.goal.position, position)
-				}
-				return returnValue
-
-			}
-
-			for (const position of positions) {
-				if (!occupied(position))
-					return position
-			}
-		}
-
-		let possiblePositions = formationPositions.square[creep.role.toString()].positions;
-
-		let goalPosition = new RoomPosition(`${'Creep ' + creep.id}`, position(possiblePositions))
-
-		return new CapturePoint(goalPosition)
+		if (check) {
+			return Util.sameCoord(creep.pos, targetPosition)
+		} else
+			return new CapturePoint(targetPosition, false);
 
 	}
 
 	positionReached(position) {
-		const members = this.members;
-		return members.some(i => i.standsOn(position));
+		// const members = this.members;
+		// if (this.goalDefinition.length === 1)
+		// 	return this.members.some(i => i.standsOn(position))
+		// else
+		// return members.some(i => i.standsOn(position));
+
+		return this.leader.standsOn(position)
+
+		// console.log(`group: ${this.name} standsOn: ${standsOn} spread: ${this.spread}`)
+
+
 	}
 }
 

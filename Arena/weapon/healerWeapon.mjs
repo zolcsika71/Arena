@@ -11,12 +11,11 @@ class HealerWeapon {
 
     // depending on the range to the target, either use heal or ranged heal
     heal(target) {
-        const creep = this.creep
 
-        if (creep.inRangeTo(target, 1)) {
-            creep.heal(target)
+        if (this.creep.inRangeTo(target, 1)) {
+            return this.creep.heal(target)
         } else {
-            creep.rangedHeal(target)
+            return this.creep.rangedHeal(target)
         }
     }
 }

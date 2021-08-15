@@ -1,10 +1,11 @@
 'use strict';
 
 
-class RoomPosition {
+
+class RoomPosition  {
 	constructor(name, position) {
 		this.name = name;
-		// this.pos = position
+		this.pos = position;
 		this.x = position.x;
 		this.y = position.y;
 		this.cost = null;
@@ -53,11 +54,14 @@ class RoomPosition {
 	}
 
 	getDirectionTo(target) {
+		if (Util.sameCoord(target, this))
+			return 0;
 		return Game.getDirection(target.x - this.x, target.y - this.y);
+
 	}
 
 	toString() {
-		return `[${green(this.name)}] ${yellow(this.x)}, ${yellow(this.y)}`;
+		return `[${green(this.name)}] x: ${yellow(this.x)}, y: ${yellow(this.y)}, cost: ${yellow(this.cost)}`;
 	}
 }
 

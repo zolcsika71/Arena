@@ -10,7 +10,7 @@ class MeleeWeapon {
     }
 
     attack(target) {
-        this.creep.attack(target)
+        return this.creep.attack(target)
     }
 }
 
