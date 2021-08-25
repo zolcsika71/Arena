@@ -51,7 +51,7 @@ class CaptureTheFlagBasic {
 		if (Arena.time > 1) {
 			// console.log(`capturePoint: ${capturePoint.x} ${capturePoint.y}`);
 
-			let neighbours = capturePoint.position.getAdjacentCells();
+			// let neighbours = capturePoint.position.getAdjacentCells();
 			// 	let message = []
 			// 	let costColor
 			//

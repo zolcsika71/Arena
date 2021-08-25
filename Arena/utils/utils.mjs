@@ -5,7 +5,7 @@ import RoomPosition from '../roomPosition.mjs';
 class Util {
 
 	printGame(property = null) {
-		if (!property)
+		if (property === null)
 			Object.keys(Game).forEach(property => {
 				console.log(property, Game[property])
 			})

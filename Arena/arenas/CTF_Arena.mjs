@@ -61,10 +61,10 @@ class CaptureTheFlagArena extends myArena {
 	}
 
 	cornerPosition(flag) {
-		let position = {x: 1, y: 1};
+		let position = new RoomPosition(`cornerPositionUpperLeft`, {x: 0, y: 0});
 
 		if (flag.x !== 2) {
-			position = {x: 98, y: 98};
+			position = new RoomPosition(`cornerPositionBottomRight`, {x: 98, y: 98});
 		}
 
 		return position;

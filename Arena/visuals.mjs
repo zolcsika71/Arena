@@ -46,8 +46,6 @@ class Visuals {
 
 		let pos;
 
-
-
 		for (const creep of Arena.myCreeps) {
 
 			if (start){
@@ -60,14 +58,17 @@ class Visuals {
 			if (creep.role === 'Melee') {
 				// this.logCreep(creep, pos);
 				Game.circle(pos, style.creep.melee);
+				Game.text(`${creep.getId}`, pos, style.creepText)
 			}
 			else if (creep.role === 'Ranged') {
-				// this.logCreep(creep, pos);
+				// this.logCreep(creep.id, pos);
 				Game.circle(pos, style.creep.ranged);
+				Game.text(`${creep.getId}`, pos, style.creepText)
 			}
 			else if (creep.role === 'Healer') {
 				// this.logCreep(creep, pos);
 				Game.circle(pos, style.creep.healer);
+				Game.text(`${creep.getId}`, pos, style.creepText)
 			}
 		}
 	}

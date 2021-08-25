@@ -1,8 +1,7 @@
 'use strict';
 
 
-
-class RoomPosition  {
+class RoomPosition {
 	constructor(name, position) {
 		this.name = name;
 		this.pos = position;
@@ -10,12 +9,6 @@ class RoomPosition  {
 		this.y = position.y;
 		this.cost = null;
 	}
-
-
-	// standsOn (position) {
-	//     // return position.x === this.x && position.y === this.y;
-	//     return _.isEqual(this.pos, position);
-	// };
 
 	get neighbours() {
 		let neighbours = [],

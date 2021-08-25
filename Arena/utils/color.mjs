@@ -35,6 +35,16 @@ function paintCyan(message) {
 
 
 let style = {
+	creepText: {
+		color: WHITE,
+		font: '0.5',
+		stroke: undefined,
+		strokeWidth: 0.15,
+		backgroundColor: undefined,
+		backgroundPadding: 0.3,
+		align: 'center',
+		opacity: 1
+	},
 	creep: {
 		melee: {
 			radius: 0.3,

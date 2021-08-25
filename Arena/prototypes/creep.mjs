@@ -138,6 +138,12 @@ Object.defineProperties(prototype, {
 		},
 		configurable: true,
 	},
+	'getId': {
+		get: function () {
+			return parseInt(this.id, 10);
+		},
+		configurable: true,
+	}
 });
 
 prototype.toString = function () {
@@ -146,6 +152,24 @@ prototype.toString = function () {
 };
 
 prototype.start = function (actions = []) {
+	this.travel = {
+		path: '',
+		reversePath: '',
+		destination: undefined,
+		state: {
+			tick: 0,
+			stuckCount: 0,
+			lastPos: undefined,
+			nextPos: undefined,
+		},
+		searchPath: {
+			ops: undefined,
+			cost: undefined,
+			incomplete: undefined,
+			move: undefined,
+			options: undefined,
+		},
+	};
 	this.actions = actions;
 	this.executedActions = [];
 	for (const action of actions) {

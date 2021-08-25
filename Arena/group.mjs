@@ -210,7 +210,7 @@ class Group {
 			offset = quadForm[equator][creep.memberId];
 		}
 
-		let targetPosition = new RoomPosition(`equator: ${equator}, offset: ${offset}`, {
+		let targetPosition = new RoomPosition(`${equator}, offset: ${offset}`, {
 			x: target.x + offset[0],
 			y: target.y + offset[1],
 		});
@@ -218,7 +218,7 @@ class Group {
 		if (check) {
 			return Util.sameCoord(creep.pos, targetPosition)
 		} else
-			return new CapturePoint(targetPosition, false);
+			return new CapturePoint(targetPosition, false); // TODO ignoreCreeps is necessary?
 
 	}
 

@@ -3,8 +3,7 @@
 import GameCache from './gameCache.mjs';
 import Stats from './utils/stats.mjs';
 import Arena from './getArena.mjs';
-import Visuals from './visuals.mjs'
-
+import Visuals from './visuals.mjs';
 
 global.Strategy = Arena.strategy;
 
@@ -19,11 +18,11 @@ class GameManager {
 	}
 
 	loop() {
-		console.log(`test: ${this.test.enabled}`);
+		console.log(`test: ${this.test.enabled || false}`);
 		if (this.test.enabled) {
 			_.forEach(this.test.modules, module => {
 				console.log(`${Util.json(module)}`);
-				if (typeof module.run === 'function' && module.enabled)
+				if (module.enabled)
 					module.run();
 			})
 

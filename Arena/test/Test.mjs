@@ -7,14 +7,14 @@ class Test {
 	constructor(GamePropertyType, testFunction) {
 
 		this.GamePropertyType = {
-				enable: true,
-				type: GamePropertyType || null,
-				run: function () {
-					Util.printGame(this.type)
-				}
+			enable: false,
+			type: GamePropertyType || null,
+			run: function () {
+				Util.printGame(this.type)
+			}
 		};
 		this.testFunction = {
-			enable: true,
+			enable: false,
 			module: testFunction || 'skip',
 			run: function () {
 				TestModules[this.module]();
@@ -32,7 +32,6 @@ class Test {
 				return true;
 			}
 		}
-
 	}
 }
 
